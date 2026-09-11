@@ -1,0 +1,195 @@
+/* /plan — the "Plan my trip" composer.
+   Desktop geometry is written in units of a 1560×1008 reference frame (1u = 1
+   reference px) so the whole composition scales as one block. Tablet and compact
+   layouts switch --u to 1px and become fluid. The shared SiteHeader floats on
+   top, so --header-clear keeps the composition below it. */
+.plan-page {
+  --u: min(0.06410256vw, 0.12400794vh);
+  --vu: 0.09920635vh;
+  --inset-bottom: 106;
+  --header-clear: 112px;
+  --e-primary: cubic-bezier(0.16, 1, 0.3, 1);
+  --e-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+@supports (height: 100svh) {
+  .plan-page { --u: min(0.06410256vw, 0.12400794svh); --vu: 0.09920635svh; }
+}
+@media (min-width: 1561px) {
+  .plan-page { --inset-bottom: 74; }
+}
+/* The site header wraps onto two rows at this width (see app/styles/cinema.css). */
+@media (max-width: 640px) {
+  .plan-page { --header-clear: 140px; }
+}
+
+.plan-frame {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  padding: var(--header-clear) calc(225 * var(--u)) calc(var(--inset-bottom) * var(--vu));
+  color: #fdf1e1;
+}
+
+/* --- Hero + composer --- */
+.plan-hero { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(51 * var(--vu)); padding-bottom: calc(4 * var(--vu)); }
+.plan-heading { font-size: calc(36.25 * var(--u)); line-height: 1.1; letter-spacing: 0.0018em; text-align: center; color: #fdf1e1; text-shadow: 0 calc(2 * var(--u)) calc(22 * var(--u)) rgba(0, 0, 0, 0.3); }
+
+.plan-card {
+  position: relative;
+  width: calc(708 * var(--u));
+  height: calc(143 * var(--u));
+  margin-right: calc(3 * var(--u));
+  border-radius: calc(26 * var(--u));
+  background: rgba(22, 25, 22, 0.94);
+  backdrop-filter: blur(calc(26 * var(--u))) saturate(112%);
+  box-shadow: inset 0 0 0 1px rgba(253, 241, 225, 0.14), 0 calc(22 * var(--u)) calc(60 * var(--u)) rgba(0, 0, 0, 0.3);
+  transition: box-shadow 0.18s ease;
+}
+.plan-card:focus-within { box-shadow: inset 0 0 0 1px rgba(253, 241, 225, 0.4), 0 calc(22 * var(--u)) calc(60 * var(--u)) rgba(0, 0, 0, 0.3); }
+
+.plan-ph {
+  position: absolute;
+  top: calc(33 * var(--u));
+  left: calc(27 * var(--u));
+  right: calc(24 * var(--u));
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: calc(9.97 * var(--u));
+  line-height: 1.35;
+  letter-spacing: 0.007em;
+  color: rgba(253, 241, 225, 0.92);
+  text-overflow: ellipsis;
+  outline: none;
+}
+.plan-ph::placeholder { color: rgba(253, 241, 225, 0.5); }
+
+/* One 30u toolbar band: chips on the left, and a right cluster placed at the
+   measured coordinates. The send circle is taller than the chips and hangs 7u
+   below the band, so the cluster is deliberately not a flex row here. */
+.plan-tools { position: absolute; top: calc(92 * var(--u)); left: calc(19 * var(--u)); right: calc(-1 * var(--u)); height: calc(30 * var(--u)); }
+.plan-chips { display: flex; align-items: center; gap: calc(5.5 * var(--u)); height: 100%; }
+.plan-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--ig) * var(--u));
+  width: calc(var(--cw) * var(--u));
+  height: calc(30 * var(--u));
+  padding-left: calc(var(--pl) * var(--u));
+  border: 1px solid rgba(253, 241, 225, 0.05);
+  border-radius: calc(9 * var(--u));
+  background: linear-gradient(180deg, rgba(253, 241, 225, 0.088) 0%, rgba(253, 241, 225, 0.05) 45%, rgba(253, 241, 225, 0.038) 100%);
+  font-size: calc(9 * var(--u));
+  line-height: 1;
+  white-space: nowrap;
+  color: rgba(253, 241, 225, 0.56);
+  transition: background 0.18s ease, color 0.18s ease;
+}
+.plan-chip:hover { background: linear-gradient(180deg, rgba(253, 241, 225, 0.14), rgba(253, 241, 225, 0.07)); color: rgba(253, 241, 225, 0.8); }
+.plan-chip svg { flex: none; width: calc(var(--iw) * var(--u)); height: auto; fill: currentColor; }
+.plan-chip span { display: inline-block; transform: translateY(calc(1 * var(--u))); }
+
+.plan-right { position: absolute; inset: 0; pointer-events: none; }
+.plan-right > * { position: absolute; pointer-events: auto; }
+.plan-model { top: calc(15.5 * var(--u)); left: calc(510.2 * var(--u)); display: inline-flex; align-items: center; gap: calc(6.2 * var(--u)); font-size: calc(10.4 * var(--u)); line-height: 1; white-space: nowrap; color: rgba(253, 241, 225, 0.56); }
+.plan-model svg { width: calc(6.8 * var(--u)); height: auto; }
+.plan-attach { top: calc(10.14 * var(--u)); left: calc(599.15 * var(--u)); display: block; color: rgba(253, 241, 225, 0.62); transition: color 0.18s ease; }
+.plan-attach:hover { color: #fdf1e1; }
+.plan-attach svg { display: block; width: calc(19.79 * var(--u)); height: calc(19.79 * var(--u)); }
+.plan-send {
+  top: calc(2 * var(--u));
+  left: calc(640 * var(--u));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(35 * var(--u));
+  height: calc(35 * var(--u));
+  border: 0;
+  border-radius: 50%;
+  color: #111411;
+  background: linear-gradient(163deg, #fffaf2 0%, #fdf1e1 46%, #e9d6bb 100%);
+  box-shadow: 0 calc(3 * var(--u)) calc(12 * var(--u)) rgba(0, 0, 0, 0.34);
+  cursor: pointer;
+  transition: filter 0.18s ease, transform 0.12s ease;
+}
+.plan-send:hover { filter: brightness(1.07); }
+.plan-send:active { transform: scale(0.95); }
+.plan-send svg { width: calc(11.66 * var(--u)); height: auto; fill: currentColor; }
+
+.plan-status { position: absolute; top: calc(100% + 14 * var(--u)); left: 0; right: 0; font-size: calc(11 * var(--u)); text-align: center; color: rgba(253, 241, 225, 0.82); }
+
+/* --- Proof line --- */
+.plan-proof { flex: none; display: flex; flex-direction: column; align-items: center; gap: calc(52.3 * var(--vu)); }
+.plan-proof-caption { font-size: calc(14.01 * var(--u)); letter-spacing: 0.0065em; color: rgba(253, 241, 225, 0.95); text-shadow: 0 calc(1 * var(--u)) calc(12 * var(--u)) rgba(0, 0, 0, 0.35); }
+.plan-proof-marks { display: flex; align-items: center; gap: calc(62 * var(--u)); margin: 0; padding: 0; list-style: none; }
+.plan-proof-marks li { font-size: calc(22 * var(--u)); color: #fdf1e1; filter: drop-shadow(0 calc(1 * var(--u)) calc(10 * var(--u)) rgba(0, 0, 0, 0.3)); }
+
+/* --- Tablet: fluid desktop, one-row toolbar --- */
+@media (min-width: 600px) and (max-width: 1180px) and (min-height: 600px) {
+  .plan-page { --u: 1px; }
+  .plan-frame { padding: var(--header-clear) clamp(28px, 4.2vw, 60px) clamp(26px, 4.4vh, 56px); }
+  .plan-heading { font-size: clamp(27px, 4.3vw, 44px); line-height: 1.12; }
+  .plan-card { display: flex; flex-direction: column; gap: clamp(20px, 3.2vh, 44px); width: min(100%, clamp(516px, 74vw, 760px)); height: auto; margin-right: 0; padding: clamp(15px, 1.9vw, 24px); border-radius: clamp(17px, 2.1vw, 26px); }
+  .plan-ph { position: static; font-size: clamp(11px, 1.35vw, 14px); line-height: 1.4; }
+  .plan-tools { position: static; display: flex; flex-wrap: wrap; align-items: center; gap: clamp(10px, 1.4vw, 18px); height: auto; }
+  .plan-chips { flex-wrap: nowrap; gap: clamp(6px, 0.85vw, 10px); }
+  .plan-chip { width: auto; height: clamp(29px, 3.4vh, 34px); padding: 0 clamp(7px, 1vw, 13px); font-size: clamp(9.6px, 1.12vw, 12.5px); }
+  .plan-model { font-size: clamp(9.8px, 1.12vw, 12.5px); }
+  .plan-right { position: static; display: flex; align-items: center; gap: 0; margin-left: auto; }
+  .plan-right > * { position: static; }
+  .plan-attach { margin-left: clamp(9px, 1.4vw, 20px); }
+  .plan-send { width: clamp(32px, 3.5vw, 38px); height: clamp(32px, 3.5vw, 38px); margin-left: clamp(9px, 1.3vw, 18px); }
+  .plan-proof { gap: clamp(15px, 2.5vh, 30px); }
+}
+
+/* --- Compact: phones and short landscape screens --- */
+@media (max-width: 599px), (max-height: 599px) and (max-width: 1180px) {
+  .plan-page { --u: 1px; }
+  .plan-frame {
+    padding:
+      var(--header-clear)
+      max(clamp(18px, 5.2vw, 40px), env(safe-area-inset-right))
+      max(20px, env(safe-area-inset-bottom))
+      max(clamp(18px, 5.2vw, 40px), env(safe-area-inset-left));
+  }
+  .plan-heading { width: 100%; max-width: 15ch; font-size: clamp(29px, 7.6vw, 50px); line-height: 1.14; letter-spacing: -0.012em; }
+  .plan-card { display: flex; flex-direction: column; gap: clamp(16px, 4.6vh, 34px); width: 100%; max-width: 600px; height: auto; margin-right: 0; padding: clamp(13px, 3.4vw, 18px); }
+  .plan-ph { position: static; font-size: clamp(9.4px, 2.95vw, 14px); }
+  .plan-tools { position: static; display: flex; flex-direction: column; align-items: stretch; gap: 12px; height: auto; }
+  .plan-chips { flex-wrap: wrap; }
+  /* Size chips to their labels so all three fit the first row on phones. */
+  .plan-chip { width: auto; padding: 0 10px; }
+  .plan-right { position: static; display: flex; align-items: center; justify-content: flex-start; }
+  .plan-right > * { position: static; }
+  .plan-attach { margin-left: auto; }
+  .plan-send { width: 40px; height: 40px; margin-left: 14px; }
+  .plan-proof-marks { gap: 24px; }
+}
+@media (max-width: 1180px) and (max-height: 560px) {
+  .plan-hero { gap: 16px; }
+  .plan-heading { font-size: clamp(24px, 5.4vh, 34px); }
+  .plan-proof { gap: 10px; }
+}
+
+/* --- Entrance: plays once on first paint, never scroll-bound. Keyframes only
+   declare the start state and use backwards fill, so hover/active transforms
+   work normally once each element has settled. --- */
+@keyframes plan-settle-up { from { opacity: 0; transform: translateY(calc(6 * var(--u))); } }
+@keyframes plan-focus { from { opacity: 0; transform: translateY(calc(14 * var(--u))); filter: blur(calc(6 * var(--u))); } }
+@keyframes plan-panel { from { opacity: 0; transform: translateY(calc(18 * var(--u))) scale(0.985); } }
+@keyframes plan-populate { from { opacity: 0; transform: translateY(calc(4 * var(--u))); } }
+@keyframes plan-send { from { transform: scale(0.82); } }
+
+@media (prefers-reduced-motion: no-preference) {
+  .plan-heading { animation: plan-focus 1s var(--e-primary) 0.3s backwards; }
+  .plan-card { animation: plan-panel 0.9s var(--e-primary) 0.62s backwards; }
+  .plan-ph { animation: plan-populate 0.5s var(--e-soft) 0.88s backwards; }
+  .plan-chips { animation: plan-populate 0.5s var(--e-soft) 0.94s backwards; }
+  .plan-right { animation: plan-populate 0.5s var(--e-soft) 1s backwards; }
+  .plan-send { animation: plan-send 0.5s var(--e-primary) 1s backwards; }
+  .plan-proof-caption { animation: plan-settle-up 0.55s var(--e-soft) 1.08s backwards; }
+  .plan-proof-marks li { animation: plan-settle-up 0.55s var(--e-soft) backwards; }
+}

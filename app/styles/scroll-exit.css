@@ -1,0 +1,18 @@
+/* Pinned heroes (Places pages and /plan) whose scroll exit mirrors the homepage
+   intro. hooks/use-hero-scroll-exit.ts writes --hero-exit (0 → 1) on .exit-scroll
+   over the same 650px window as introExit in lib/cinema-math. */
+.exit-scroll { position: relative; height: calc(100vh + 650px); }
+.exit-stage { position: sticky; top: 0; height: 100vh; min-height: 480px; overflow: hidden; }
+
+/* svh keeps bottom-anchored copy above mobile browser toolbars; the background
+   colour sits on .exit-scroll so no strip shows when the toolbars collapse. */
+@supports (height: 100svh) {
+  .exit-scroll { height: calc(100svh + 650px); }
+  .exit-stage { height: 100svh; }
+}
+
+/* Same exit values as the ROAMI wordmark and intro copy: headline -210px /
+   scale .92 / fade, secondary copy +90px / fade, footage slowly pushing in. */
+.exit-media { transform: scale(calc(1 + var(--hero-exit, 0) * 0.12)); transform-origin: 50% 60%; will-change: transform; }
+.exit-title { transform: translate3d(0, calc(var(--hero-exit, 0) * -210px), 0) scale(calc(1 - var(--hero-exit, 0) * 0.08)); opacity: calc(1 - var(--hero-exit, 0)); will-change: transform, opacity; }
+.exit-copy { transform: translate3d(0, calc(var(--hero-exit, 0) * 90px), 0); opacity: calc(1 - var(--hero-exit, 0)); will-change: transform, opacity; }
