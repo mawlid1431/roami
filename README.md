@@ -8,6 +8,18 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38bdf8)](https://tailwindcss.com/)
 [![Bun](https://img.shields.io/badge/Bun-1.3.14-f472b6)](https://bun.sh/)
 
+<p align="center">
+  <img src="docs/screenshots/hero.jpg" alt="ROAMI homepage — the ROAMI wordmark over Stari Most, with the landmark navigation pills below" width="100%">
+  <br>
+  <em>The cinematic homepage: chapter one of the pinned scroll story.</em>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/places.jpg" alt="The Places section — a horizontal carousel of five Mostar landmark cards" width="100%">
+  <br>
+  <em>Places: five landmark cards, each opening into the full story.</em>
+</p>
+
 ## Table of Contents
 
 - [Overview](#overview)
@@ -33,7 +45,7 @@ ROAMI is a Next.js App Router site built around one long cinematic scroll on the
 ## Features
 
 **Cinematic homepage**
-- A single pinned scroll stage (`.cinema-scroll`) driving four chapters — intro, bridge, bazaar, and an arrival sequence (plane → airport → doors) — through hand-written scroll math (`lib/cinema-math.ts`), not a scroll-animation library.
+- A single pinned scroll stage (`.cinema-scroll`) driving four chapters — intro, bridge, bazaar, and the sights slider — through hand-written scroll math (`lib/cinema-math.ts`), not a scroll-animation library.
 - Mouse parallax, reduced-motion support, and a nav bar whose active link tracks the current chapter (and the below-fold Places / Get in touch sections) via a `data-active-section` attribute.
 
 **Place pages**
@@ -78,7 +90,7 @@ flowchart TB
 
     subgraph Data["Static data — data/*.ts"]
         Highlights["highlights.ts — place content + hero config"]
-        Scene["scene.ts / route-journey.ts / sights.ts"]
+        Scene["scene.ts / sights.ts / testimonials.ts"]
     end
 
     Chat -- "fetch POST, streamed text/plain" --> ChatRoute
@@ -199,11 +211,11 @@ ROAMI/
 │   ├── animations/                     # cinema-controller, ambient-video, scroll-exit-stage
 │   ├── layout/                         # site-header, site-footer
 │   ├── sections/
-│   │   ├── home/                       # cinematic-home, route-journey, places-carousel, showcase-grid, ...
+│   │   ├── home/                       # cinematic-home, sights-slider, places-carousel, showcase-grid, ...
 │   │   ├── places/                     # boomerang-hero, fade-hero, glass-hero, place-hero
 │   │   └── plan/                       # plan-hero, plan-composer (the AI chat UI)
 │   └── ui/                             # button, input, apple-cards-carousel, animated-testimonials, ...
-├── data/                               # highlights, navigation, scene, sights, testimonials, route-journey
+├── data/                               # highlights, navigation, scene, sights, testimonials
 ├── hooks/                              # use-cinema-scroll, use-hero-scroll-exit
 ├── lib/
 │   ├── cinema-math.ts                  # Scroll → CSS-variable frame calculations
