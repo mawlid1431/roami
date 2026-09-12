@@ -86,6 +86,8 @@
   line-height: 1;
   white-space: nowrap;
   color: rgba(253, 241, 225, 0.56);
+  cursor: pointer;
+  text-align: left;
   transition: background 0.18s ease, color 0.18s ease;
 }
 .plan-chip:hover { background: linear-gradient(180deg, rgba(253, 241, 225, 0.14), rgba(253, 241, 225, 0.07)); color: rgba(253, 241, 225, 0.8); }
@@ -94,9 +96,11 @@
 
 .plan-right { position: absolute; inset: 0; pointer-events: none; }
 .plan-right > * { position: absolute; pointer-events: auto; }
-.plan-model { top: calc(15.5 * var(--u)); left: calc(510.2 * var(--u)); display: inline-flex; align-items: center; gap: calc(6.2 * var(--u)); font-size: calc(10.4 * var(--u)); line-height: 1; white-space: nowrap; color: rgba(253, 241, 225, 0.56); }
-.plan-model svg { width: calc(6.8 * var(--u)); height: auto; }
-.plan-attach { top: calc(10.14 * var(--u)); left: calc(599.15 * var(--u)); display: block; color: rgba(253, 241, 225, 0.62); transition: color 0.18s ease; }
+.plan-model { top: calc(15.5 * var(--u)); left: calc(510.2 * var(--u)); display: inline-flex; align-items: center; gap: calc(6.2 * var(--u)); border: 0; background: none; padding: 0; font: inherit; font-size: calc(10.4 * var(--u)); line-height: 1; white-space: nowrap; color: rgba(253, 241, 225, 0.56); cursor: pointer; max-width: calc(150 * var(--u)); overflow: hidden; text-overflow: ellipsis; transition: color 0.18s ease; }
+.plan-model:hover { color: rgba(253, 241, 225, 0.85); }
+.plan-model svg:first-child { flex: none; width: calc(11 * var(--u)); height: calc(11 * var(--u)); }
+.plan-model svg:last-child { flex: none; width: calc(6.8 * var(--u)); height: auto; }
+.plan-attach { top: calc(10.14 * var(--u)); left: calc(599.15 * var(--u)); display: block; border: 0; background: none; padding: 0; color: rgba(253, 241, 225, 0.62); cursor: pointer; transition: color 0.18s ease; }
 .plan-attach:hover { color: #fdf1e1; }
 .plan-attach svg { display: block; width: calc(19.79 * var(--u)); height: calc(19.79 * var(--u)); }
 .plan-send {
@@ -117,9 +121,73 @@
 }
 .plan-send:hover { filter: brightness(1.07); }
 .plan-send:active { transform: scale(0.95); }
+.plan-send:disabled { cursor: not-allowed; opacity: 0.45; filter: none; transform: none; }
 .plan-send svg { width: calc(11.66 * var(--u)); height: auto; fill: currentColor; }
+.plan-msg-spinner { width: 1em; height: 1em; animation: plan-spin 0.8s linear infinite; }
+@keyframes plan-spin { to { transform: rotate(360deg); } }
 
-.plan-status { position: absolute; top: calc(100% + 14 * var(--u)); left: 0; right: 0; font-size: calc(11 * var(--u)); text-align: center; color: rgba(253, 241, 225, 0.82); }
+.plan-status { position: absolute; top: calc(100% + 14 * var(--u)); left: 0; right: 0; font-size: calc(11 * var(--u)); text-align: center; color: rgba(253, 241, 225, 0.82); min-height: 1em; }
+
+/* --- Conversation mode: once a first message is sent, the composer grows
+   into a chat transcript. Reuses the same flex-column shape the tablet/
+   compact breakpoints already give .plan-card, just applied at any width. --- */
+.plan-card.is-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: min(100%, 760px);
+  height: auto;
+  max-height: min(66vh, 640px);
+  margin-right: 0;
+  padding: 18px;
+  animation: none;
+}
+.plan-card.is-chat .plan-ph { position: static; padding: 10px 2px 0; font-size: 15px; line-height: 1.4; border-top: 1px solid rgba(253, 241, 225, 0.1); }
+.plan-card.is-chat .plan-tools { position: static; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; height: auto; }
+.plan-card.is-chat .plan-chips { flex-wrap: wrap; }
+.plan-card.is-chat .plan-right { position: static; display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.plan-card.is-chat .plan-right > * { position: static; }
+.plan-card.is-chat .plan-status { position: static; }
+
+.plan-transcript { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; padding-right: 4px; margin: 0 -4px; }
+.plan-msg { display: flex; flex-direction: column; gap: 6px; max-width: 88%; animation: plan-msg-in 0.28s ease-out both; }
+.plan-msg-user { align-self: flex-end; align-items: flex-end; }
+.plan-msg-assistant { align-self: flex-start; align-items: flex-start; }
+@keyframes plan-msg-in { from { opacity: 0; transform: translateY(6px); } }
+.plan-msg-body { padding: 10px 14px; border-radius: 16px; font-size: 14px; line-height: 1.5; }
+.plan-msg-user .plan-msg-body { background: #fdf1e1; color: #111411; border-bottom-right-radius: 4px; }
+.plan-msg-assistant .plan-msg-body { background: rgba(253, 241, 225, 0.1); color: #fdf1e1; border-bottom-left-radius: 4px; }
+.plan-msg-body p { margin: 0 0 8px; }
+.plan-msg-body p:last-child { margin-bottom: 0; }
+.plan-msg-body h4 { margin: 12px 0 4px; font-family: "Ogg Medium", serif; font-size: 13px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; opacity: 0.85; }
+.plan-msg-body h4:first-child { margin-top: 0; }
+.plan-msg-list { margin: 0 0 8px; padding-left: 18px; }
+.plan-msg-error .plan-msg-body { background: rgba(255, 120, 120, 0.16); color: #ffd7d7; }
+.plan-msg-retry { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: rgba(253, 241, 225, 0.12); color: #fdf1e1; font-size: 12px; cursor: pointer; }
+.plan-msg-retry svg { width: 12px; height: 12px; }
+.plan-msg-attachment-image { width: 120px; height: 90px; border-radius: 10px; object-fit: cover; }
+.plan-msg-attachment-doc { margin: 0; font-size: 12px; color: rgba(253, 241, 225, 0.7); }
+
+.plan-pending-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+/* Desktop pre-chat card is absolutely positioned (not flex), so this needs its own placement between the input (top 33u) and the toolbar (top 92u). */
+.plan-card:not(.is-chat) .plan-pending-row { position: absolute; left: calc(27 * var(--u)); right: calc(24 * var(--u)); top: calc(60 * var(--u)); }
+.plan-pending-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: rgba(253, 241, 225, 0.1); color: rgba(253, 241, 225, 0.85); font-size: 12px; }
+.plan-pending-chip img { width: 22px; height: 22px; border-radius: 6px; object-fit: cover; }
+.plan-pending-chip button { display: inline-flex; border: 0; background: none; padding: 0; color: inherit; cursor: pointer; opacity: 0.7; }
+.plan-pending-chip button:hover { opacity: 1; }
+.plan-pending-chip button svg { width: 12px; height: 12px; }
+.plan-pending-error { font-size: 12px; color: #ffb4b4; }
+
+.plan-vibe-popover, .plan-location-popover { display: flex; flex-direction: column; gap: 6px; width: min(240px, 80vw); }
+.plan-vibe-option { padding: 8px 10px; border-radius: 10px; background: none; text-align: left; font-size: 14px; cursor: pointer; transition: background 0.15s ease; }
+.plan-vibe-option:hover { background: rgba(17, 20, 17, 0.06); }
+.plan-location-label { margin: 0; font-weight: 700; font-size: 13px; }
+.plan-location-hint { margin: 2px 0 4px; font-size: 12px; opacity: 0.65; }
+.plan-location-geo { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: rgba(17, 20, 17, 0.06); font-size: 13px; cursor: pointer; }
+.plan-location-geo:disabled { opacity: 0.6; cursor: wait; }
+.plan-location-geo svg { width: 14px; height: 14px; }
+.plan-location-error { margin: 2px 0 0; font-size: 12px; color: #b3261e; }
+.plan-location-input { margin-top: 4px; padding: 8px 10px; border: 1px solid rgba(17, 20, 17, 0.15); border-radius: 10px; font-size: 13px; }
 
 /* --- Proof line --- */
 .plan-proof { flex: none; display: flex; flex-direction: column; align-items: center; gap: calc(52.3 * var(--vu)); }
@@ -143,6 +211,8 @@
   .plan-attach { margin-left: clamp(9px, 1.4vw, 20px); }
   .plan-send { width: clamp(32px, 3.5vw, 38px); height: clamp(32px, 3.5vw, 38px); margin-left: clamp(9px, 1.3vw, 18px); }
   .plan-proof { gap: clamp(15px, 2.5vh, 30px); }
+  .plan-pending-row { position: static; }
+  .plan-card.is-chat { max-height: min(70vh, 620px); }
 }
 
 /* --- Compact: phones and short landscape screens --- */
@@ -167,6 +237,9 @@
   .plan-attach { margin-left: auto; }
   .plan-send { width: 40px; height: 40px; margin-left: 14px; }
   .plan-proof-marks { gap: 24px; }
+  .plan-pending-row { position: static; }
+  .plan-card.is-chat { max-height: 74vh; }
+  .plan-msg { max-width: 100%; }
 }
 @media (max-width: 1180px) and (max-height: 560px) {
   .plan-hero { gap: 16px; }
