@@ -7,6 +7,8 @@ import type { ReactNode } from "react";
 const HEADING_RE = /^#{1,3}\s*(.+)$/;
 const ALL_CAPS_HEADING_RE = /^[A-Z][A-Z0-9 /&'()-]{2,58}$/;
 const BULLET_RE = /^[-*]\s+(.*)$/;
+const DIVIDER_RE = /^[-=_*]{3,}$/;
+const TABLE_ROW_RE = /^\|(.+)\|$/;
 
 function renderInline(text: string, keyPrefix: string): ReactNode[] {
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
@@ -48,6 +50,23 @@ export function formatAssistantMessage(content: string): ReactNode {
     if (!line) {
       flushBullets();
       flushParagraph();
+      continue;
+    }
+    if (DIVIDER_RE.test(line)) {
+      flushBullets();
+      flushParagraph();
+      continue;
+    }
+    // Defensive: the model is told not to emit Markdown tables, but if one
+    // slips through, render each row as readable text instead of raw pipes.
+    const tableMatch = line.match(TABLE_ROW_RE);
+    if (tableMatch) {
+      flushBullets();
+      flushParagraph();
+      const cells = tableMatch[1].split("|").map((cell) => cell.trim()).filter(Boolean);
+      if (cells.length > 0 && !cells.every((cell) => DIVIDER_RE.test(cell))) {
+        blocks.push(<p key={`t-${blocks.length}`}>{renderInline(cells.join(" — "), `t-${blocks.length}`)}</p>);
+      }
       continue;
     }
     const headingMatch = line.match(HEADING_RE);

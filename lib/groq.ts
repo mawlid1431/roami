@@ -46,9 +46,11 @@ export async function streamGroqChat(messages: GroqMessage[], { hasImage = false
       stream: true,
       temperature: 0.6,
       max_tokens: 3200,
-      // Keep the model's hidden chain-of-thought out of the response entirely
-      // rather than forwarding it as a separate `reasoning` delta stream.
-      reasoning_effort: "low",
+      // Keep the model's hidden chain-of-thought out of the response entirely.
+      // gpt-oss-120b accepts low/medium/high; the vision model only accepts
+      // none/default and rejects "low" outright (400), which is what was
+      // breaking every image-analysis request.
+      reasoning_effort: hasImage ? "none" : "low",
     }),
   });
 
