@@ -1,1460 +1,302 @@
-# ROAMI 🌍
+# ROAMI
 
-> A cinematic travel experience website showcasing Mostar, Bosnia and Herzegovina through immersive storytelling and scroll-driven animations.
-
-**Created by [Mowlid Haibe](https://github.com/mawlid1431)** | [GitHub Repository](https://github.com/mawlid1431/ROAMI)
+> A cinematic travel experience for Mostar, Bosnia and Herzegovina — a scroll-driven story on the homepage, three landmark pages, and an AI travel-planning assistant.
 
 [![Next.js](https://img.shields.io/badge/Next.js-16.3.5-black)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19.2.8-blue)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38bdf8)](https://tailwindcss.com/)
 [![Bun](https://img.shields.io/badge/Bun-1.3.14-f472b6)](https://bun.sh/)
-[![License](https://img.shields.io/badge/License-MIT-green)](./LICENSE)
-[![GitHub](https://img.shields.io/badge/GitHub-mawlid1431-blue)](https://github.com/mawlid1431)
 
-## 📋 Table of Contents
+## Table of Contents
 
-- [Overview](#-overview)
-- [Features](#-features)
-- [Architecture](#-architecture)
-- [Tech Stack](#️-tech-stack)
-- [System Layers](#-system-layers)
-- [Project Structure](#-project-structure)
-- [Installation & Setup](#-installation--setup)
-- [Environment Configuration](#-environment-configuration)
-- [Development Workflow](#-development-workflow)
-- [Key Components](#-key-components)
-- [Animation System](#-animation-system)
-- [Data Flow](#-data-flow)
-- [Deployment](#-deployment)
-- [Performance](#-performance)
-- [Contributing](#-contributing)
+- [Overview](#overview)
+- [Features](#features)
+- [Architecture](#architecture)
+- [AI Travel Assistant flow](#ai-travel-assistant-flow)
+- [Cinema-scroll activity flow](#cinema-scroll-activity-flow)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Installation & Setup](#installation--setup)
+- [Environment Configuration](#environment-configuration)
+- [Available Scripts](#available-scripts)
+- [Key Systems](#key-systems)
+- [Content Management](#content-management)
+- [Deployment](#deployment)
+- [Testing](#testing)
+- [Contributing](#contributing)
 
-## 🌟 Overview
+## Overview
 
-ROAMI is a Next.js-powered web application that brings the historic city of Mostar to life through:
-- **Cinematic scroll experiences** with GSAP-powered animations
-- **Interactive place highlights** including the Old Bridge (Stari Most), Neretva River, and UNESCO Old City
-- **Immersive storytelling** with parallax effects and ambient video backgrounds
-- **AI-powered trip planning** features to help visitors explore Mostar
+ROAMI is a Next.js App Router site built around one long cinematic scroll on the homepage, three landmark detail pages with different hero treatments, and an AI trip-planning assistant. There is no CMS and no database — content lives in typed `data/*.ts` files, and the one piece of runtime intelligence is a Groq-backed chat assistant reached from the `/plan` page.
 
-## 🚀 Features
+## Features
 
-### 🎬 Cinematic Experiences
-- **Multi-layered Parallax Scrolling**: Advanced scroll-driven animations with GSAP ScrollTrigger
-- **Ambient Video Backgrounds**: CloudFront-hosted videos with optimized loading
-- **Mouse Parallax Effects**: Subtle 3D depth with mouse movement tracking
-- **Arrival Sequence**: Scroll-driven plane descent, airport resolution, and door opening animation
+**Cinematic homepage**
+- A single pinned scroll stage (`.cinema-scroll`) driving four chapters — intro, bridge, bazaar, and an arrival sequence (plane → airport → doors) — through hand-written scroll math (`lib/cinema-math.ts`), not a scroll-animation library.
+- Mouse parallax, reduced-motion support, and a nav bar whose active link tracks the current chapter (and the below-fold Places / Get in touch sections) via a `data-active-section` attribute.
 
-### 🏛️ Place Showcase
-- **Dynamic Place Pages**: Three hero variants (Boomerang, Fade, Glass)
-- **Interactive Carousels**: Apple-style card carousel with smooth transitions
-- **UNESCO Heritage Content**: Detailed information about historical landmarks
+**Place pages**
+- Three hero variants — boomerang (video plays forward/reverse on scroll), fade, and glass — chosen per landmark in `data/highlights.ts`.
+- Shared scroll-exit animation (`hooks/use-hero-scroll-exit.ts`) so every hero leaves the screen the same way.
 
-### 🗺️ Trip Planning
-- **AI-Powered Route Planning**: Integration with GROQ API for intelligent itinerary generation
-- **Interactive Composer**: Build custom trips with visual feedback
-- **Email Route Delivery**: Send planned routes directly to users
+**AI Travel Assistant** (`/plan`)
+- A real conversational trip planner backed by Groq, built directly into the existing composer UI — no separate chat widget.
+- Multi-turn context, budget- and location-aware itineraries, image analysis (screenshots, destination photos), and PDF/text document uploads.
+- See [AI Travel Assistant flow](#ai-travel-assistant-flow) below for the full request/response sequence.
 
-### 🎨 UI/UX
-- **Responsive Design**: Mobile-first, fully adaptive layouts
-- **Accessibility**: ARIA labels, keyboard navigation, reduced motion support
-- **Glass Morphism**: Modern glassmorphic UI components
-- **Animated Testimonials**: Smooth testimonial carousel with auto-play
+**UI/UX**
+- Responsive down to phone widths, ARIA labels and keyboard navigation throughout, `prefers-reduced-motion` respected everywhere animation happens.
 
-## 🏗️ Architecture
+## Architecture
 
-### High-Level Architecture
+```mermaid
+flowchart TB
+    subgraph Client["Browser"]
+        RSC["Server-rendered pages\n(app/page.tsx, plan/page.tsx, places/[slug]/page.tsx)"]
+        Hydrate["Client components hydrate"]
+        Engine["Scroll engine\nlib/cinema-math.ts + hooks/use-cinema-scroll.ts\n(requestAnimationFrame → CSS custom properties)"]
+        Chat["Travel chat UI\ncomponents/sections/plan/plan-composer.tsx"]
+        RSC --> Hydrate --> Engine
+        Hydrate --> Chat
+    end
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        CLIENT LAYER                          │
-│  ┌─────────────┐  ┌──────────────┐  ┌──────────────────┐  │
-│  │   Browser   │  │  Next.js SSR │  │  React Hydration │  │
-│  │   Render    │→ │   (Server)   │→ │    (Client)      │  │
-│  └─────────────┘  └──────────────┘  └──────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                            ↓
-┌─────────────────────────────────────────────────────────────┐
-│                    PRESENTATION LAYER                        │
-│  ┌─────────────┐  ┌──────────────┐  ┌──────────────────┐  │
-│  │  Components │  │   Sections   │  │    Animations    │  │
-│  │  (UI/Layout)│  │(Home/Places) │  │  (GSAP/Framer)   │  │
-│  └─────────────┘  └──────────────┘  └──────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                            ↓
-┌─────────────────────────────────────────────────────────────┐
-│                    APPLICATION LAYER                         │
-│  ┌─────────────┐  ┌──────────────┐  ┌──────────────────┐  │
-│  │   Hooks     │  │     Lib      │  │      Types       │  │
-│  │ (Business   │  │  (Utilities) │  │  (TypeScript)    │  │
-│  │   Logic)    │  │              │  │                  │  │
-│  └─────────────┘  └──────────────┘  └──────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                            ↓
-┌─────────────────────────────────────────────────────────────┐
-│                       DATA LAYER                             │
-│  ┌─────────────┐  ┌──────────────┐  ┌──────────────────┐  │
-│  │  Static     │  │   External   │  │      CDN         │  │
-│  │   Data      │  │     APIs     │  │   (CloudFront)   │  │
-│  │ (highlights)│  │   (GROQ AI)  │  │    (Videos)      │  │
-│  └─────────────┘  └──────────────┘  └──────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
+    subgraph Server["Next.js server (Route Handlers)"]
+        ChatRoute["/api/travel-assistant\nstreams assistant replies"]
+        DocRoute["/api/travel-assistant/extract-document\nPDF/.txt/.md → text (pdf-parse)"]
+        GeoRoute["/api/travel-assistant/reverse-geocode\ncoords → 'city, country'"]
+        GroqLib["lib/groq.ts\nserver-only Groq client"]
+        Prompt["lib/travel-assistant-prompt.ts\nsystem prompt & guardrails"]
+        ChatRoute --> GroqLib
+        ChatRoute --> Prompt
+    end
+
+    subgraph External["External services"]
+        Groq["Groq API\nopenai/gpt-oss-120b (text)\nqwen/qwen3.6-27b (vision)"]
+        OSM["OpenStreetMap Nominatim\n(keyless reverse geocoding)"]
+    end
+
+    subgraph Data["Static data — data/*.ts"]
+        Highlights["highlights.ts — place content + hero config"]
+        Scene["scene.ts / route-journey.ts / sights.ts"]
+    end
+
+    Chat -- "fetch POST, streamed text/plain" --> ChatRoute
+    Chat -- "multipart file" --> DocRoute
+    Chat -- "lat/lon" --> GeoRoute
+    GroqLib -- "HTTPS, GROQ_API_KEY (server-only)" --> Groq
+    GeoRoute --> OSM
+    RSC --> Data
 ```
 
-### Request Flow Diagram
+The scroll engine and the AI assistant are the two pieces of real logic in this app; everything else is typed data rendered through components. Both are detailed below.
 
-```
-User Request → Next.js Router → App Router (page.tsx)
-                                      ↓
-                                Server Component (RSC)
-                                      ↓
-                          Fetch Data (Static/API)
-                                      ↓
-                              Render HTML + CSS
-                                      ↓
-                          Send to Client Browser
-                                      ↓
-                              Hydrate React
-                                      ↓
-                          Client Components Active
-                                      ↓
-                    GSAP Animations + Event Listeners
-                                      ↓
-                          Interactive Experience
-```
+## AI Travel Assistant flow
 
-## 🛠️ Tech Stack
+The assistant is reached from the same composer that's always been on `/plan` — sending the first message is what turns it into a chat. Every turn (text, image, or document) goes through one streaming round trip:
 
-### Core Framework
-- **[Next.js 16.3.5](https://nextjs.org/)** - React framework with App Router
-- **[React 19.2.8](https://reactjs.org/)** - UI library with latest features
-- **[TypeScript 5](https://www.typescriptlang.org/)** - Type-safe development
+```mermaid
+sequenceDiagram
+    actor User
+    participant UI as PlanComposer (client)
+    participant Route as /api/travel-assistant
+    participant Groq as lib/groq.ts
+    participant API as Groq API
 
-### Styling & UI
-- **[Tailwind CSS 4](https://tailwindcss.com/)** - Utility-first CSS framework
-- **[Radix UI](https://www.radix-ui.com/)** - Accessible component primitives
-- **[shadcn/ui](https://ui.shadcn.com/)** - Re-usable component patterns
-- **[class-variance-authority](https://cva.style/)** - Component variant management
+    User->>UI: Type message (+ optional image / document / location)
+    UI->>UI: Append user bubble, disable input, show "Thinking…"
+    UI->>Route: POST { messages, image?, documentText?, location? }
+    Route->>Route: Validate payload (size, shape, message count)
+    Route->>Groq: streamGroqChat(messages, { hasImage })
+    Groq->>Groq: Pick model — gpt-oss-120b (text) or qwen3.6-27b (image)
+    Groq->>API: POST /chat/completions (stream: true, GROQ_API_KEY)
+    API-->>Groq: SSE chunks (data: {...}\n\n)
+    loop each chunk
+        Groq->>Groq: Parse delta.content, drop reasoning tokens
+        Groq-->>Route: enqueue text chunk
+        Route-->>UI: forward chunk (text/plain stream)
+        UI->>UI: append chunk to assistant bubble, re-render
+    end
+    API-->>Groq: data: [DONE]
+    Groq-->>Route: close stream
+    Route-->>UI: response ends
+    UI->>UI: idle — ready for the next turn (context kept client-side)
 
-### Animation Libraries
-- **[GSAP 3.15.0](https://greensock.com/gsap/)** - Professional-grade scroll animations
-- **[Framer Motion 13.2.0](https://www.framer.com/motion/)** - React animation library
-
-### Development Tools
-- **[Bun 1.3.14](https://bun.sh/)** - Fast JavaScript runtime & package manager
-- **[ESLint 9](https://eslint.org/)** - Code linting
-- **[PostCSS](https://postcss.org/)** - CSS processing
-
-### External Services
-- **[GROQ API](https://console.groq.com/)** - AI-powered trip planning
-- **[OpenRouter API](https://openrouter.ai/)** - Alternative AI model routing
-- **[CloudFront CDN](https://aws.amazon.com/cloudfront/)** - Video asset delivery
-
-### Testing
-- **[Bun Test](https://bun.sh/docs/cli/test)** - Built-in test runner
-- **[happy-dom](https://github.com/capricorn86/happy-dom)** - DOM environment for testing
-
-## 🔄 System Layers
-
-### 1️⃣ **Presentation Layer** (UI Components)
-```
-components/
-├── ui/                          # Atomic UI components
-│   ├── button.tsx              # Reusable button with variants
-│   ├── input.tsx               # Form input components
-│   ├── gooey-input.tsx         # Animated input with gooey effect
-│   ├── animated-testimonials.tsx  # Auto-playing testimonial slider
-│   ├── apple-cards-carousel.tsx   # Apple-style card carousel
-│   ├── layout-grid.tsx         # Responsive grid layout
-│   └── moving-border.tsx       # Animated border effect
-├── layout/                      # Layout components
-│   ├── site-header.tsx         # Navigation header
-│   └── site-footer.tsx         # Site footer
-└── sections/                    # Page-specific sections
-    ├── home/                    # Home page sections
-    ├── places/                  # Place detail sections
-    └── plan/                    # Trip planning sections
+    alt Groq or network error
+        Route-->>UI: JSON { error } with 4xx/5xx
+        UI->>UI: Render error bubble with Retry
+    end
 ```
 
-**Responsibilities:**
-- Render UI elements
-- Handle user interactions
-- Display data from parent components
-- Implement accessibility features (ARIA, keyboard nav)
+Key points that shape the implementation:
+- **The API key never reaches the browser.** `lib/groq.ts` is guarded with `import "server-only"`; only the Route Handler calls it.
+- **Model choice is automatic**, not user-facing: any turn with an attached image uses the vision model, everything else uses the text model.
+- **Conversation state lives in the client**, not the server — the whole message history is resent each turn (capped at 40 messages, 8000 chars/message) so the assistant can apply changes like "make it cheaper" to the existing plan.
 
-### 2️⃣ **Animation Layer** (Motion & Scroll Control)
-```
-components/animations/
-├── cinema-controller.tsx       # GSAP scroll orchestrator
-├── ambient-video.tsx          # Background video player
-└── scroll-exit-stage.tsx      # Hero exit animations
+## Cinema-scroll activity flow
 
-hooks/
-├── use-cinema-scroll.ts       # Custom scroll animation hook
-└── use-hero-scroll-exit.ts    # Hero section exit hook
+The homepage's chapter navigation (nav-bar clicks, direct `#hash` links, and raw scrolling) all funnel through the same decision logic in `hooks/use-cinema-scroll.ts`:
 
-lib/
-├── cinema-math.ts             # Scroll math calculations
-└── sight-slider.ts            # Carousel logic
-```
+```mermaid
+flowchart TD
+    Start(["Scroll, hashchange, or nav click"]) --> IsChapterLink{"Link targets a chapter\nhash in chapterDistances?"}
+    IsChapterLink -- "no, e.g. #places" --> NativeScroll["Let the browser handle it natively"]
+    IsChapterLink -- "yes" --> PreventDefault["preventDefault + pushState"]
+    PreventDefault --> ComputeTarget["Compute target scroll:\nsection top + chapter distance"]
+    ComputeTarget --> ScrollTo["window.scrollTo(..., behavior: smooth)"]
 
-**Responsibilities:**
-- Orchestrate GSAP ScrollTrigger timelines
-- Calculate scroll progress and interpolation
-- Manage CSS custom properties for animations
-- Handle reduced motion preferences
-- Coordinate parallax effects
-
-### 3️⃣ **Application Layer** (Business Logic)
-```
-app/
-├── page.tsx                    # Home page (Server Component)
-├── layout.tsx                  # Root layout & metadata
-├── places/[slug]/page.tsx     # Dynamic place routes
-└── plan/page.tsx              # Trip planning page
-
-data/
-├── highlights.ts               # Place content & configurations
-├── navigation.ts               # Site navigation structure
-├── scene.ts                   # Cinematic scene assets
-├── sights.ts                  # Carousel content
-├── testimonials.ts            # User testimonials
-└── route-journey.ts           # Journey animation assets
+    Tick(["requestAnimationFrame tick"]) --> ReadScroll["Read real scroll distance"]
+    ReadScroll --> Lerp["Smooth toward target\n(lerp factor 0.14)"]
+    Lerp --> Frame["getCinemaFrame(smoothScroll, viewport, mouse)"]
+    Frame --> SetVars["Write route-, bridge-, sights- etc.\nas CSS custom properties on the root element"]
+    SetVars --> ActiveCheck{"Below-fold section\n(Places / Get in touch) in view?"}
+    ActiveCheck -- "yes" --> MarkBelowFold["data-active-section = that section"]
+    ActiveCheck -- "no" --> NearestWaypoint["data-active-section = nearest passed chapter waypoint"]
+    MarkBelowFold --> Settled{"Still converging?\n(scroll/mouse delta above threshold)"}
+    NearestWaypoint --> Settled
+    Settled -- "yes" --> Tick
+    Settled -- "no" --> Idle(["Idle until next scroll or pointermove"])
 ```
 
-**Responsibilities:**
-- Route handling (Next.js App Router)
-- Server-side rendering (RSC)
-- Data fetching and caching
-- SEO metadata generation
-- Static data management
+`data-active-section` is what the nav bar's underline reads from — no separate scroll-spy library, just one more output of the same per-frame calculation that drives the animation itself.
 
-### 4️⃣ **Integration Layer** (External Services)
-```
-API Integrations:
-├── GROQ API                    # AI trip planning
-├── OpenRouter API              # Alternative AI routing
-└── CloudFront CDN             # Video asset delivery
+## Tech Stack
 
-Environment Variables:
-├── GROQ_API_KEY               # GROQ authentication
-└── OPENROUTER_API_KEY         # OpenRouter authentication
-```
+**Core**
+- [Next.js 16](https://nextjs.org/) (App Router, Turbopack) · [React 19](https://reactjs.org/) · [TypeScript 5](https://www.typescriptlang.org/)
 
-**Responsibilities:**
-- AI model communication
-- CDN asset fetching
-- API authentication
-- Error handling & retries
+**Styling**
+- [Tailwind CSS 4](https://tailwindcss.com/) (CSS-first `@theme` config, no `tailwind.config.js`) · [Radix UI](https://www.radix-ui.com/) primitives (Popover, Dialog) · [class-variance-authority](https://cva.style/)
 
-### 5️⃣ **Infrastructure Layer** (Build & Deploy)
-```
-Configuration Files:
-├── next.config.ts             # Next.js configuration
-├── tsconfig.json              # TypeScript settings
-├── tailwind.config.js         # Tailwind CSS config
-├── postcss.config.mjs         # PostCSS plugins
-├── vercel.json                # Deployment config
-├── eslint.config.mjs          # Linting rules
-└── package.json               # Dependencies & scripts
-```
+**Animation**
+- Hand-written scroll math + `requestAnimationFrame` + CSS custom properties for the cinema engine (see [Architecture](#architecture)) · [Framer Motion](https://www.framer.com/motion/) for discrete UI transitions (carousels, dialogs, testimonials)
 
-**Responsibilities:**
-- Build optimization (Turbopack)
-- Type checking
-- Code linting
-- Deployment configuration
-- Dependency management
+**AI**
+- [Groq API](https://console.groq.com/) — `openai/gpt-oss-120b` for text/reasoning, `qwen/qwen3.6-27b` for image analysis · [pdf-parse](https://www.npmjs.com/package/pdf-parse) for document text extraction · OpenStreetMap Nominatim for keyless reverse geocoding
 
-## 📁 Project Structure
+**Tooling**
+- [Bun](https://bun.sh/) as package manager, dev/test runner · ESLint 9 · `bun test` + [happy-dom](https://github.com/capricorn86/happy-dom)
+
+> `gsap` is listed in `package.json` but is not imported anywhere in the codebase — the scroll animation is entirely the custom engine above.
+
+## Project Structure
 
 ```
 ROAMI/
-├── .git/                       # Git version control
-├── .next/                      # Next.js build output
-├── .env                        # Environment variables (DO NOT COMMIT)
-├── .gitignore                  # Git ignore patterns
-│
-├── app/                        # Next.js App Router (Routes)
-│   ├── layout.tsx             # Root layout with metadata
-│   ├── page.tsx               # Home page (/)
-│   ├── globals.css            # Global styles & CSS variables
-│   ├── places/                # Place routes
-│   │   └── [slug]/
-│   │       └── page.tsx       # Dynamic place pages (/places/old-bridge)
-│   ├── plan/
-│   │   └── page.tsx           # Trip planning (/plan)
-│   └── styles/                # Page-specific CSS
-│       ├── cinema.css         # Cinematic scroll styles
-│       ├── home-sections.css  # Home section styles
-│       ├── places.css         # Place page styles
-│       ├── plan.css           # Planning page styles
-│       └── scroll-exit.css    # Exit animation styles
-│
-├── components/                 # React Components
-│   ├── animations/            # Animation controllers
-│   │   ├── ambient-video.tsx  # Video background handler
-│   │   ├── cinema-controller.tsx  # GSAP orchestrator
-│   │   └── scroll-exit-stage.tsx  # Exit animations
-│   ├── layout/                # Layout components
-│   │   ├── site-header.tsx    # Navigation header
-│   │   └── site-footer.tsx    # Footer with links
-│   ├── sections/              # Page sections
-│   │   ├── home/              # Home page sections
-│   │   │   ├── cinematic-home.tsx      # Main scroll experience
-│   │   │   ├── get-in-touch.tsx        # Contact section
-│   │   │   ├── old-town-notes.tsx      # Notes section
-│   │   │   ├── places-carousel.tsx     # Places showcase
-│   │   │   ├── scene-image.tsx         # Optimized images
-│   │   │   ├── showcase-grid.tsx       # Feature grid
-│   │   │   ├── sights-slider.tsx       # Interactive slider
-│   │   │   ├── story-panels.tsx        # Scroll-triggered panels
-│   │   │   └── testimonials-section.tsx # User testimonials
-│   │   ├── places/            # Place page sections
-│   │   │   ├── boomerang-hero.tsx      # Boomerang video hero
-│   │   │   ├── email-route-form.tsx    # Route email form
-│   │   │   ├── fade-hero.tsx           # Fade-in hero
-│   │   │   ├── glass-hero.tsx          # Glassmorphic hero
-│   │   │   └── place-hero.tsx          # Universal hero wrapper
-│   │   └── plan/              # Planning page sections
-│   │       ├── plan-composer.tsx       # Trip builder
-│   │       └── plan-hero.tsx           # Planning hero
-│   └── ui/                    # Reusable UI components
-│       ├── animated-testimonials.tsx   # Testimonial carousel
-│       ├── apple-cards-carousel.tsx    # Card carousel
-│       ├── button.tsx                  # Button component
-│       ├── gooey-input.tsx             # Animated input
-│       ├── input.tsx                   # Standard input
-│       ├── label.tsx                   # Form label
-│       ├── layout-grid.tsx             # Grid component
-│       └── moving-border.tsx           # Animated border
-│
-├── data/                       # Static Data (TypeScript)
-│   ├── highlights.ts          # Place information & hero configs
-│   ├── navigation.ts          # Navigation menu structure
-│   ├── scene.ts              # Cinematic scene assets
-│   ├── sights.ts             # Slider content
-│   └── testimonials.ts       # User testimonial data
-│
-├── hooks/                      # Custom React Hooks
-│   ├── use-cinema-scroll.ts   # GSAP scroll orchestration
-│   └── use-hero-scroll-exit.ts # Hero exit animations
-│
-├── lib/                        # Utility Functions
-│   ├── cinema-math.ts         # Scroll interpolation & calculations
-│   ├── sight-slider.ts        # Carousel positioning logic
-│   └── utils.ts               # General utilities (cn, clsx)
-│
-├── public/                     # Static Assets
-│   ├── fonts/                 # Web fonts
-│   │   └── OggText-Medium.woff2
-│   └── videos/                # Video files & posters
-│       ├── old-bridge-boomerang.mp4
-│       ├── old-bridge-poster.jpg
-│       └── neretva-river-poster.jpg
-│
-├── scripts/                    # Build & utility scripts
-├── tests/                      # Test files
-├── types/                      # TypeScript type definitions
-│
-├── node_modules/               # Dependencies (auto-generated)
-├── bun.lock                   # Bun lockfile
-├── package.json               # Project dependencies & scripts
-├── tsconfig.json              # TypeScript configuration
-├── next.config.ts             # Next.js configuration
-├── postcss.config.mjs         # PostCSS configuration
-├── eslint.config.mjs          # ESLint rules
-├── vercel.json                # Vercel deployment config
-├── components.json            # shadcn/ui configuration
-└── README.md                  # This file
+├── app/
+│   ├── api/travel-assistant/
+│   │   ├── route.ts                    # Streaming chat endpoint
+│   │   ├── extract-document/route.ts   # PDF/.txt/.md → text
+│   │   └── reverse-geocode/route.ts    # coords → "city, country"
+│   ├── places/[slug]/page.tsx          # Dynamic landmark pages
+│   ├── plan/page.tsx                   # Trip planner page
+│   ├── not-found.tsx                   # Branded 404
+│   ├── icon.svg                        # Favicon
+│   ├── layout.tsx / page.tsx
+│   ├── globals.css
+│   └── styles/                         # cinema.css, plan.css, places.css, home-sections.css, scroll-exit.css
+├── components/
+│   ├── animations/                     # cinema-controller, ambient-video, scroll-exit-stage
+│   ├── layout/                         # site-header, site-footer
+│   ├── sections/
+│   │   ├── home/                       # cinematic-home, route-journey, places-carousel, showcase-grid, ...
+│   │   ├── places/                     # boomerang-hero, fade-hero, glass-hero, place-hero
+│   │   └── plan/                       # plan-hero, plan-composer (the AI chat UI)
+│   └── ui/                             # button, input, apple-cards-carousel, animated-testimonials, ...
+├── data/                               # highlights, navigation, scene, sights, testimonials, route-journey
+├── hooks/                              # use-cinema-scroll, use-hero-scroll-exit
+├── lib/
+│   ├── cinema-math.ts                  # Scroll → CSS-variable frame calculations
+│   ├── groq.ts                         # Server-only Groq client + streaming
+│   ├── travel-assistant-prompt.ts      # System prompt & guardrails
+│   ├── format-message.tsx              # Plain-text → styled chat bubbles
+│   └── utils.ts
+├── public/{fonts,videos}/
+├── tests/                              # bun test suite
+└── types/
 ```
 
-## 🚀 Installation & Setup
+## Installation & Setup
 
-### Prerequisites
-
-Before you begin, ensure you have the following installed:
-
-- **[Bun](https://bun.sh/) 1.3.14+** (Recommended) or **Node.js 20+**
-- **Git** for version control
-- A code editor (VS Code recommended)
-- Modern web browser (Chrome, Firefox, Safari, Edge)
-
-### Step 1: Install Bun
-
-**On Windows (PowerShell):**
-```powershell
-powershell -c "irm bun.sh/install.ps1|iex"
-```
-
-**On macOS/Linux:**
-```bash
-curl -fsSL https://bun.sh/install | bash
-```
-
-**Verify installation:**
-```bash
-bun --version
-# Expected output: 1.3.14 or higher
-```
-
-### Step 2: Clone the Repository
+**Prerequisites:** [Bun](https://bun.sh/) 1.3.14+ (or Node.js 20+ for compatibility).
 
 ```bash
-# Clone via HTTPS
-git clone https://github.com/your-username/ROAMI.git
-
-# OR clone via SSH
-git clone git@github.com:your-username/ROAMI.git
-
-# Navigate to project directory
+git clone <this-repository-url>
 cd ROAMI
-```
-
-### Step 3: Install Dependencies
-
-```bash
-# Install all dependencies with Bun (fast!)
 bun install
-
-# This will install:
-# - Next.js & React
-# - Tailwind CSS
-# - GSAP & Framer Motion
-# - All other dependencies listed in package.json
 ```
 
-**Expected output:**
-```
-bun install v1.3.14
- + 1,234 packages installed [2.5s]
-```
-
-### Step 4: Set Up Environment Variables
-
-Create a `.env` file in the root directory:
+Create a `.env` file in the project root (see [Environment Configuration](#environment-configuration)), then:
 
 ```bash
-# Copy the example (if exists) or create new
-cp .env.example .env
-
-# OR create manually
-touch .env
-```
-
-Add your API keys (see [Environment Configuration](#-environment-configuration)):
-
-```env
-# AI Trip Planning (Required for /plan page)
-GROQ_API_KEY=your_groq_api_key_here
-
-# Alternative AI Router (Optional)
-OPENROUTER_API_KEY=your_openrouter_api_key_here
-```
-
-### Step 5: Run Development Server
-
-```bash
-# Start the development server
 bun run dev
 ```
 
-**Expected output:**
-```
-  ▲ Next.js 16.3.5
-  - Local:        http://localhost:3000
-  - Environments: .env
+Open [http://localhost:3000](http://localhost:3000). The homepage is the cinematic scroll; `/plan` is the AI assistant.
 
- ✓ Ready in 1.2s
-```
-
-### Step 6: Open in Browser
-
-Navigate to **http://localhost:3000**
-
-You should see the ROAMI cinematic home page! 🎉
-
-### Available Scripts
-
-```bash
-# Development
-bun run dev          # Start dev server (hot reload enabled)
-
-# Building
-bun run build        # Create production build
-bun run start        # Start production server (run after build)
-
-# Code Quality
-bun run lint         # Run ESLint (check for code issues)
-bun run typecheck    # TypeScript type checking
-
-# Testing
-bun run test         # Run test suite with Bun
-```
-
-## 🔐 Environment Configuration
-
-### Required Environment Variables
-
-Create a `.env` file in the project root:
+## Environment Configuration
 
 ```env
-# ===========================================
-# ROAMI Environment Configuration
-# ===========================================
-
-# ----- AI Services -----
-# GROQ API for AI-powered trip planning
-# Get your key: https://console.groq.com/keys
-GROQ_API_KEY=gsk_your_groq_api_key_here
-
-# OpenRouter API (Alternative AI provider)
-# Get your key: https://openrouter.ai/keys
-OPENROUTER_API_KEY=sk-or-v1-your_openrouter_key_here
-
-# ----- Optional: Model Selection -----
-# Specify AI model to use (optional)
-# Default: mixtral-8x7b-32768
-AI_MODEL=inclusionai/ling-3.0-flash-vl:free
+# Required for the AI Travel Assistant (/plan).
+# Get a key at https://console.groq.com/keys
+GROQ_API_KEY=gsk_your_key_here
 ```
 
-### Getting API Keys
+That is the only environment variable this app reads. It has no `NEXT_PUBLIC_` prefix, so it's never sent to the browser — only `app/api/travel-assistant/*` reads it, via the `server-only`-guarded `lib/groq.ts`. `.env*` is already in `.gitignore`; never commit it.
 
-#### GROQ API Key
-1. Visit [https://console.groq.com/keys](https://console.groq.com/keys)
-2. Create an account or sign in
-3. Click "Create API Key"
-4. Copy the key (starts with `gsk_`)
-5. Paste into `.env` file
+If the key is missing or rejected by Groq, `/api/travel-assistant` returns a JSON `{ error }` response instead of throwing, and the chat UI shows that message with a Retry button rather than failing silently.
 
-#### OpenRouter API Key (Optional)
-1. Visit [https://openrouter.ai/keys](https://openrouter.ai/keys)
-2. Sign up or log in
-3. Generate a new API key
-4. Copy the key (starts with `sk-or-v1-`)
-5. Paste into `.env` file
-
-### Security Notes
-
-⚠️ **IMPORTANT:**
-- **NEVER commit `.env` to Git** (already in `.gitignore`)
-- **DO NOT share your API keys publicly**
-- **Rotate keys if accidentally exposed**
-- Use different keys for development and production
-
-### Environment Variable Validation
-
-The app will warn you if required environment variables are missing:
+## Available Scripts
 
 ```bash
-# Check if variables are loaded
-bun run dev
-
-# Expected: Server starts without environment errors
+bun run dev        # Start the dev server (Turbopack)
+bun run build      # Production build
+bun run start      # Start the production server (after build)
+bun run lint       # ESLint
+bun run typecheck  # next typegen + tsc --noEmit
+bun run test       # Run the test suite
 ```
 
-## 💻 Development Workflow
+## Key Systems
 
-### End-to-End Development Process
+### Place hero variants (`data/highlights.ts` picks one per landmark)
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    1. REQUIREMENT & PLANNING                     │
-│  • Define feature requirements                                   │
-│  • Review existing data structures                               │
-│  • Plan component hierarchy                                      │
-└─────────────────────────────────────────────────────────────────┘
-                            ↓
-┌─────────────────────────────────────────────────────────────────┐
-│                    2. DATA LAYER UPDATES                         │
-│  • Update /data/*.ts files (highlights, navigation, etc.)        │
-│  • Define TypeScript interfaces                                  │
-│  • Add static content and configurations                         │
-└─────────────────────────────────────────────────────────────────┘
-                            ↓
-┌─────────────────────────────────────────────────────────────────┐
-│                    3. COMPONENT DEVELOPMENT                      │
-│  • Create new components in /components/sections/                │
-│  • Build reusable UI in /components/ui/                         │
-│  • Implement accessibility (ARIA, keyboard nav)                  │
-│  • Style with Tailwind CSS                                       │
-└─────────────────────────────────────────────────────────────────┘
-                            ↓
-┌─────────────────────────────────────────────────────────────────┐
-│                    4. ANIMATION IMPLEMENTATION                   │
-│  • Create custom hooks in /hooks/                               │
-│  • Add GSAP timelines & ScrollTriggers                          │
-│  • Implement Framer Motion animations                           │
-│  • Test reduced motion preferences                              │
-└─────────────────────────────────────────────────────────────────┘
-                            ↓
-┌─────────────────────────────────────────────────────────────────┐
-│                    5. ROUTING & PAGES                           │
-│  • Create/update pages in /app/                                 │
-│  • Configure metadata for SEO                                   │
-│  • Integrate components into pages                              │
-│  • Test dynamic routes                                          │
-└─────────────────────────────────────────────────────────────────┘
-                            ↓
-┌─────────────────────────────────────────────────────────────────┐
-│                    6. TESTING & QA                              │
-│  • Write unit tests (Bun test)                                  │
-│  • Test responsive design (mobile/tablet/desktop)               │
-│  • Verify accessibility (WCAG compliance)                       │
-│  • Performance testing (Lighthouse)                             │
-└─────────────────────────────────────────────────────────────────┘
-                            ↓
-┌─────────────────────────────────────────────────────────────────┐
-│                    7. CODE REVIEW & LINT                        │
-│  • Run: bun run lint                                            │
-│  • Run: bun run typecheck                                       │
-│  • Fix ESLint warnings/errors                                   │
-│  • Review code for best practices                               │
-└─────────────────────────────────────────────────────────────────┘
-                            ↓
-┌─────────────────────────────────────────────────────────────────┐
-│                    8. BUILD & DEPLOY                            │
-│  • Run: bun run build                                           │
-│  • Test production build locally                                │
-│  • Deploy to Vercel/hosting                                     │
-│  • Monitor for errors                                           │
-└─────────────────────────────────────────────────────────────────┘
-```
+| Variant | Behavior | Used for |
+|---|---|---|
+| `boomerang` | Video plays forward on scroll down, reverses on scroll up | Old Bridge |
+| `fade` | Elegant fade/rise entrance, split muted headline | Neretva River |
+| `glass` | Glassmorphic panel, stat card, testimonial, email-route form | UNESCO Old City |
 
-### Development Best Practices
+`components/sections/places/place-hero.tsx` is a thin switch over `hero.variant` — adding a new landmark never requires touching this file.
 
-#### 1. Component Creation
-```bash
-# Create a new section component
-/components/sections/home/new-section.tsx
+### The chat renderer (`lib/format-message.tsx`)
 
-# Follow naming conventions:
-# - PascalCase for components (NewSection)
-# - kebab-case for files (new-section.tsx)
-# - Use descriptive names
-```
+The assistant is instructed (in `lib/travel-assistant-prompt.ts`) to reply in a small plain-text subset — `## Headings`, `**bold**`, `- bullets` — because the UI renders that subset directly rather than pulling in a Markdown library. It also defensively strips stray Markdown tables/dividers into plain lines, in case the model ignores the instruction.
 
-#### 2. State Management
-```typescript
-// Use React hooks for local state
-import { useState, useEffect } from "react";
+## Content Management
 
-// For complex scroll states, use custom hooks
-import { useCinemaScroll } from "@/hooks/use-cinema-scroll";
-```
+Add a new landmark by editing `data/highlights.ts` (add a `Highlight` entry with a hero variant, body copy, and facts) — `app/places/[slug]/page.tsx` uses `generateStaticParams`, so the route appears automatically. Add its video/poster to `public/videos/` or point at a CDN URL.
 
-#### 3. Styling Guidelines
-```typescript
-// Use Tailwind utility classes
-<div className="flex items-center justify-between p-4 bg-slate-900">
+## Deployment
 
-// For dynamic styles, use cn() utility
-import { cn } from "@/lib/utils";
+Configured for Vercel via `vercel.json`.
 
-<div className={cn(
-  "base-classes",
-  isActive && "active-classes",
-  className // Allow className override
-)}>
-```
+1. Push to GitHub/GitLab/Bitbucket and import the repo on [vercel.com](https://vercel.com), **or** run `vercel` / `vercel --prod` with the [Vercel CLI](https://vercel.com/docs/cli).
+2. Set `GROQ_API_KEY` in the project's Environment Variables (Production + Preview).
+3. Deploy — `vercel.json` already points the build at `bun run build`.
 
-#### 4. Animation Guidelines
-```typescript
-// GSAP for scroll-driven animations
-gsap.to(element, {
-  scrollTrigger: {
-    trigger: section,
-    start: "top top",
-    end: "bottom top",
-    scrub: 1,
-  },
-  y: -100,
-});
-
-// Framer Motion for UI transitions
-<motion.div
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  transition={{ duration: 0.5 }}
->
-```
-
-#### 5. Git Workflow
-```bash
-# Create feature branch
-git checkout -b feature/new-animation
-
-# Make changes and commit
-git add .
-git commit -m "feat: add new parallax animation"
-
-# Push to remote
-git push origin feature/new-animation
-
-# Create pull request on GitHub
-```
-
-## 🎨 Key Components
-
-### 1. Cinematic Home Experience (`/components/sections/home/cinematic-home.tsx`)
-
-The centerpiece of ROAMI - a scroll-driven cinematic journey:
-
-**Features:**
-- **Layered Parallax**: 7 layers moving at different speeds
-- **Mouse Parallax**: Subtle 3D depth with cursor tracking
-- **Scroll Chapters**: 
-  - `#cinema` - Initial hero with ROAMI title
-  - `#bridge` - Old Bridge story panel
-  - `#bazaar` - Bazaar exploration panel
-  - `#routes` - Arrival sequence (plane → airport → doors)
-- **Smart Performance**: Respects `prefers-reduced-motion`
-
-**Technical Implementation:**
-```typescript
-// GSAP ScrollTrigger with custom math
-const frame = getCinemaFrame(smoothScroll, windowHeight, mouseX, mouseY);
-
-// CSS custom properties updated via RAF
-root.style.setProperty('--sky-y', frame.skyY);
-root.style.setProperty('--bridge-scale', frame.bridgeScale);
-```
-
-### 2. Place Hero Variants
-
-Three distinct hero styles for showcasing places:
-
-#### **A. Boomerang Hero** (`/components/sections/places/boomerang-hero.tsx`)
-- Video plays forward on scroll down
-- Reverses on scroll up
-- Creates a "boomerang" effect
-- Used for: Old Bridge
-
-```typescript
-interface BoomerangHeroContent {
-  variant: "boomerang";
-  video: string;
-  poster: string;
-  headlineLead: string;
-  headlineAccent: [string, string];
-  intro: string;
-  // ...
-}
-```
-
-#### **B. Fade Hero** (`/components/sections/places/fade-hero.tsx`)
-- Elegant fade-in animation
-- Split headline with muted accent
-- Minimal design
-- Used for: Neretva River
-
-```typescript
-interface FadeHeroContent {
-  variant: "fade";
-  headline: { text: string; muted?: boolean }[];
-  description: string;
-  // ...
-}
-```
-
-#### **C. Glass Hero** (`/components/sections/places/glass-hero.tsx`)
-- Glassmorphic design
-- Email capture form
-- Stats & testimonials
-- Used for: UNESCO Old City
-
-```typescript
-interface GlassHeroContent {
-  variant: "glass";
-  headline: string;
-  emailPlaceholder: string;
-  emailCta: string;
-  stat: { value: string; label: string };
-  testimonial: { /* ... */ };
-}
-```
-
-### 3. Animation System
-
-#### **GSAP ScrollTrigger** (`/hooks/use-cinema-scroll.ts`)
-```typescript
-// Smooth scroll interpolation
-smoothScroll = lerp(smoothScroll, targetScroll, 0.14);
-
-// Mouse parallax
-mouseX = lerp(mouseX, targetMouseX, 0.12);
-mouseY = lerp(mouseY, targetMouseY, 0.12);
-
-// Frame calculation
-const frame = getCinemaFrame(smoothScroll, vh, mouseX, mouseY);
-
-// Apply to CSS custom properties
-root.style.setProperty('--var-name', value);
-```
-
-#### **Framer Motion** (UI Transitions)
-```typescript
-<motion.div
-  initial={{ opacity: 0, y: 20 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.6, ease: "easeOut" }}
->
-```
-
-#### **Exit Animations** (`/hooks/use-hero-scroll-exit.ts`)
-```typescript
-// Hero exits upward as user scrolls
-gsap.to(hero, {
-  yPercent: -100,
-  ease: "none",
-  scrollTrigger: {
-    trigger: hero,
-    start: "bottom bottom",
-    end: "bottom top",
-    scrub: true,
-  },
-});
-```
-
-### 4. UI Components Library
-
-#### **Animated Testimonials** (`/components/ui/animated-testimonials.tsx`)
-- Auto-playing carousel
-- Smooth transitions
-- Pause on hover
-- Keyboard navigation
-
-#### **Apple Cards Carousel** (`/components/ui/apple-cards-carousel.tsx`)
-- iOS-style card stack
-- Momentum scrolling
-- Touch/drag support
-- Snap-to-center
-
-#### **Gooey Input** (`/components/ui/gooey-input.tsx`)
-- Animated focus state
-- Gooey morphing effect
-- Accessibility-first
-
-## 📊 Data Flow
-
-### Data Flow Architecture
-
-```
-Static Data (TS files)
-        ↓
-   /data/*.ts
-        ↓
-   TypeScript Interfaces
-        ↓
-   Server Components (RSC)
-        ↓
-   Props → Client Components
-        ↓
-   Render to DOM
-        ↓
-   GSAP/Framer Animations
-        ↓
-   User Interactions
-```
-
-### Example: Place Page Data Flow
-
-```typescript
-// 1. Define data
-// /data/highlights.ts
-export const highlights: Highlight[] = [
-  {
-    slug: "old-bridge",
-    name: "Old Bridge",
-    hero: { variant: "boomerang", /* ... */ },
-    body: ["Historical content..."],
-    facts: [/* ... */],
-  }
-];
-
-// 2. Server Component fetches data
-// /app/places/[slug]/page.tsx
-export default function PlacePage({ params }: { params: { slug: string } }) {
-  const place = highlights.find(h => h.slug === params.slug);
-  return <PlaceHero hero={place.hero} />;
-}
-
-// 3. Client Component renders
-// /components/sections/places/place-hero.tsx
-"use client";
-export function PlaceHero({ hero }: { hero: HeroContent }) {
-  if (hero.variant === "boomerang") return <BoomerangHero {...hero} />;
-  // ...
-}
-
-// 4. Animations activate
-// After hydration, GSAP ScrollTrigger binds
-```
-
-## 📝 Content Management
-
-### Adding New Places
-
-**Step 1:** Add data to `/data/highlights.ts`
-
-```typescript
-export const highlights: Highlight[] = [
-  // ... existing places
-  {
-    slug: "kravice-waterfalls",
-    name: "Kravice Waterfalls",
-    tagline: "Cascading pools in the Herzegovina countryside.",
-    hero: {
-      variant: "fade",
-      video: "https://cdn.example.com/kravice-video.mp4",
-      poster: "/videos/kravice-poster.jpg",
-      headline: [
-        { text: "Nature's " },
-        { text: "hidden gem", muted: true },
-      ],
-      description: "Twenty kilometers from Mostar...",
-    },
-    body: [
-      "Full historical context...",
-      "Visiting information...",
-    ],
-    facts: [
-      { label: "Height", value: "25 meters" },
-      { label: "Width", value: "120 meters" },
-    ],
-  },
-];
-```
-
-**Step 2:** Add video assets to `/public/videos/`
-
-```
-/public/videos/
-  kravice-video.mp4          # Hero video (or use CDN URL)
-  kravice-poster.jpg         # Video poster image
-```
-
-**Step 3:** Route is automatically generated!
-
-Navigate to: `http://localhost:3000/places/kravice-waterfalls`
-
-### Updating Navigation
-
-Edit `/data/navigation.ts`:
-
-```typescript
-export const mainNavigation = [
-  { label: "Home", href: "/" },
-  { label: "Places", href: "/#places" },
-  { label: "Kravice", href: "/places/kravice-waterfalls" }, // New!
-  { label: "Plan", href: "/plan" },
-];
-```
-
-## 🌐 Deployment
-
-### Deploying to Vercel (Recommended)
-
-**Method 1: Git Integration (Automatic)**
-
-1. Push code to GitHub/GitLab/Bitbucket
-2. Visit [vercel.com](https://vercel.com)
-3. Click "Import Project"
-4. Select your repository
-5. Configure environment variables:
-   - `GROQ_API_KEY`
-   - `OPENROUTER_API_KEY` (optional)
-6. Click "Deploy"
-
-**Method 2: Vercel CLI**
+## Testing
 
 ```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Login to Vercel
-vercel login
-
-# Deploy
-vercel
-
-# Deploy to production
-vercel --prod
-```
-
-### Build Configuration
-
-The project uses `vercel.json` for deployment config:
-
-```json
-{
-  "framework": "nextjs",
-  "buildCommand": "bun run build",
-  "installCommand": "bun install"
-}
-```
-
-### Environment Variables in Vercel
-
-1. Go to Project Settings
-2. Click "Environment Variables"
-3. Add:
-   - **Name:** `GROQ_API_KEY`
-   - **Value:** `gsk_your_key_here`
-   - **Environments:** Production, Preview, Development
-4. Redeploy to apply changes
-
-### Manual Deployment (Other Platforms)
-
-```bash
-# Build the project
-bun run build
-
-# Output directory: .next/
-# Start production server
-bun run start
-
-# Or export static site (if applicable)
-# Note: Some features require server-side rendering
-```
-
-## ⚡ Performance
-
-### Performance Optimizations
-
-#### 1. **Video Optimization**
-```typescript
-// CloudFront CDN for fast delivery
-const cloudfront = "https://d8j0ntlcm91z4.cloudfront.net/...";
-
-// Poster images for instant visual
-<video poster="/videos/poster.jpg" />
-
-// Lazy loading for below-fold videos
-<video loading="lazy" />
-```
-
-#### 2. **Image Optimization**
-```typescript
-// Next.js Image component
-import Image from "next/image";
-
-<Image
-  src="/image.jpg"
-  width={800}
-  height={600}
-  alt="Description"
-  loading="lazy" // or "eager" for above-fold
-/>
-```
-
-#### 3. **Font Optimization**
-```css
-/* globals.css */
-@font-face {
-  font-family: 'Ogg Text';
-  src: url('/fonts/OggText-Medium.woff2') format('woff2');
-  font-display: swap; /* Prevent FOIT */
-  font-weight: 500;
-}
-```
-
-#### 4. **Code Splitting**
-```typescript
-// Client components are automatically split
-"use client";
-
-// Dynamic imports for heavy components
-import dynamic from "next/dynamic";
-
-const HeavyComponent = dynamic(() => import("./heavy"), {
-  loading: () => <LoadingSpinner />,
-});
-```
-
-#### 5. **Scroll Performance**
-```typescript
-// RequestAnimationFrame for smooth updates
-function update() {
-  // ... calculations
-  frameId = requestAnimationFrame(update);
-}
-
-// CSS custom properties (faster than inline styles)
-root.style.setProperty('--y', value);
-
-// Passive event listeners
-window.addEventListener('scroll', handler, { passive: true });
-```
-
-### Performance Metrics
-
-**Target Lighthouse Scores:**
-- Performance: 90+
-- Accessibility: 100
-- Best Practices: 95+
-- SEO: 100
-
-**Key Web Vitals:**
-- LCP (Largest Contentful Paint): < 2.5s
-- FID (First Input Delay): < 100ms
-- CLS (Cumulative Layout Shift): < 0.1
-
-### Monitoring Performance
-
-```bash
-# Run Lighthouse audit
-npm install -g lighthouse
-lighthouse http://localhost:3000 --view
-
-# Check bundle size
-bun run build
-# Look for "Route (app)" size information
-```
-
-## 🧪 Testing
-
-### Running Tests
-
-```bash
-# Run all tests
 bun test
-
-# Run tests in watch mode
-bun test --watch
-
-# Run specific test file
-bun test path/to/test.test.ts
-
-# Run with coverage
-bun test --coverage
 ```
 
-### Test Structure
+`tests/cinema.test.ts` asserts exact frame values from `getCinemaFrame` at key scroll positions (intro exit, bridge/bazaar plateaus, the route-arrival sequence) across multiple viewport heights — it's a pure-function test, no browser needed.
 
-```
-tests/
-├── unit/                    # Unit tests
-│   ├── components/         # Component tests
-│   ├── hooks/              # Hook tests
-│   └── lib/                # Utility tests
-├── integration/            # Integration tests
-└── e2e/                    # End-to-end tests (if applicable)
-```
+## Contributing
 
-### Example Test
-
-```typescript
-// tests/unit/lib/cinema-math.test.ts
-import { describe, test, expect } from "bun:test";
-import { lerp, clamp } from "@/lib/cinema-math";
-
-describe("Cinema Math Utilities", () => {
-  test("lerp interpolates correctly", () => {
-    expect(lerp(0, 100, 0.5)).toBe(50);
-    expect(lerp(0, 100, 0)).toBe(0);
-    expect(lerp(0, 100, 1)).toBe(100);
-  });
-
-  test("clamp restricts values to range", () => {
-    expect(clamp(50, 0, 100)).toBe(50);
-    expect(clamp(-10, 0, 100)).toBe(0);
-    expect(clamp(150, 0, 100)).toBe(100);
-  });
-});
-```
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-#### Issue: Dependencies not installing
-```bash
-# Clear cache and reinstall
-rm -rf node_modules bun.lock
-bun install
-```
-
-#### Issue: TypeScript errors
-```bash
-# Regenerate type definitions
-bun run typecheck
-
-# Check tsconfig.json paths
-```
-
-#### Issue: Environment variables not loading
-```bash
-# Verify .env file exists
-ls -la | grep .env
-
-# Restart dev server
-bun run dev
-```
-
-#### Issue: Animations not working
-```bash
-# Check browser console for errors
-# Verify GSAP is installed
-bun list | grep gsap
-
-# Test with reduced motion disabled
-# (Browser DevTools > Rendering > Emulate CSS prefers-reduced-motion)
-```
-
-#### Issue: Videos not loading
-```bash
-# Check CloudFront URLs in data/highlights.ts
-# Verify video files in /public/videos/
-# Check browser network tab for 404s
-```
-
-### Debug Mode
-
-Enable verbose logging:
-
-```typescript
-// Add to next.config.ts temporarily
-const nextConfig: NextConfig = {
-  reactStrictMode: true,
-  logging: {
-    fetches: {
-      fullUrl: true,
-    },
-  },
-};
-```
-
-## 📚 Additional Resources
-
-### Documentation
-- [Next.js Documentation](https://nextjs.org/docs)
-- [React Documentation](https://react.dev/)
-- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
-- [GSAP Documentation](https://greensock.com/docs/)
-- [Framer Motion Documentation](https://www.framer.com/motion/)
-
-### Tutorials & Learning
-- [Next.js App Router Course](https://nextjs.org/learn)
-- [GSAP ScrollTrigger Demos](https://greensock.com/st-demos/)
-- [Tailwind CSS Tutorial](https://tailwindcss.com/docs/utility-first)
-
-### Tools
-- [Vercel Dashboard](https://vercel.com/dashboard)
-- [GROQ Console](https://console.groq.com/)
-- [Bun Documentation](https://bun.sh/docs)
-
-## 🤝 Contributing
-
-We welcome contributions! Please follow these guidelines:
-
-### Contribution Workflow
-
-1. **Fork the repository**
-   ```bash
-   # Click "Fork" on GitHub
-   git clone https://github.com/your-username/ROAMI.git
-   ```
-
-2. **Create a feature branch**
-   ```bash
-   git checkout -b feature/amazing-feature
-   # OR
-   git checkout -b fix/bug-description
-   ```
-
-3. **Make your changes**
-   - Follow code style guidelines
-   - Add tests for new features
-   - Update documentation
-
-4. **Commit with conventional commits**
-   ```bash
-   git commit -m "feat: add new parallax section"
-   git commit -m "fix: resolve scroll position bug"
-   git commit -m "docs: update installation guide"
-   ```
-
-5. **Push to your fork**
-   ```bash
-   git push origin feature/amazing-feature
-   ```
-
-6. **Open a Pull Request**
-   - Provide clear description
-   - Link related issues
-   - Add screenshots for UI changes
-
-### Code Style Guidelines
-
-- Use **TypeScript** for all new code
-- Follow **ESLint** rules (`bun run lint`)
-- Use **Tailwind CSS** for styling
-- Write **semantic HTML**
-- Add **JSDoc comments** for complex functions
-- Use **conventional commits**
-
-### Commit Message Format
-
-```
-<type>(<scope>): <description>
-
-[optional body]
-
-[optional footer]
-```
-
-**Types:**
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation changes
-- `style`: Code style changes (formatting)
-- `refactor`: Code refactoring
-- `perf`: Performance improvements
-- `test`: Adding or updating tests
-- `chore`: Maintenance tasks
-
-## 📄 License
-
-This project is licensed under the **MIT License** - see the [LICENSE](./LICENSE) file for details.
-
-**TL;DR:** You can freely use, modify, and distribute this project, even for commercial purposes. 
-We just ask that you keep the attribution and give credit where it's due! ⭐
-
-### Using This Project?
-
-If you use ROAMI in your work or learn from it, please:
-
-1. ⭐ **Star the repository** - It helps others discover the project
-2. 🔗 **Link back** to https://github.com/mawlid1431/ROAMI
-3. 📝 **Give credit** to [Mowlid Haibe](https://github.com/mawlid1431)
-4. 💬 **Share your work** - We'd love to see what you build!
-
-Example attribution:
-```markdown
-Built with inspiration from [ROAMI](https://github.com/mawlid1431/ROAMI) 
-by [Mowlid Haibe](https://github.com/mawlid1431)
-```
-
-© 2024 [Mowlid Haibe](https://github.com/mawlid1431). Released under MIT License.
-
-## 🙏 Acknowledgments
-
-### Creator & Lead Developer
-- **[Mowlid Haibe](https://github.com/mawlid1431)** - Original creator, architect, and lead developer
-  - GitHub: [@mawlid1431](https://github.com/mawlid1431)
-  - Project: [ROAMI](https://github.com/mawlid1431/ROAMI)
-
-### Special Thanks
-- **UNESCO World Heritage Site** - Old Bridge Area of the Old City of Mostar
-- **Historic content and imagery** - Mostar, Bosnia and Herzegovina
-- **Local communities** - Stories and cultural insights
-- **Travelers** - Testimonials and feedback
-- **Open Source Community** - For the amazing tools and libraries:
-  - Next.js, React, Tailwind CSS
-  - GSAP, Framer Motion
-  - Bun, TypeScript
-  - And all other open-source contributors
-
-### Want to Learn More?
-
-If you're interested in this project or want to connect:
-- 🌟 **Star this repository** on GitHub
-- 👤 **Follow** [@mawlid1431](https://github.com/mawlid1431)
-- 💼 **Connect** for collaboration opportunities
-- 📧 **Reach out** if you have questions or want to learn
-
-### Built With Passion
-
-This project represents countless hours of design, development, and refinement.
-If you find it helpful, please consider:
-- ⭐ Starring the repository
-- 📢 Sharing it with others
-- 🤝 Contributing improvements
-- 💬 Providing feedback
-
-**Your support helps keep open-source alive!**
-
-## 📞 Support & Contact
-
-### Project Information
-- **Repository**: [https://github.com/mawlid1431/ROAMI](https://github.com/mawlid1431/ROAMI)
-- **Creator**: [Mowlid Haibe](https://github.com/mawlid1431)
-- **License**: MIT License (Open Source)
-
-### Get Help
-- **Documentation Issues**: [Open an issue](https://github.com/mawlid1431/ROAMI/issues) on GitHub
-- **Feature Requests**: Use [GitHub Discussions](https://github.com/mawlid1431/ROAMI/discussions)
-- **Bug Reports**: [Report bugs](https://github.com/mawlid1431/ROAMI/issues/new) with details
-- **Security Issues**: Report privately via GitHub Security tab
-
-### Connect with the Creator
-- **GitHub**: [@mawlid1431](https://github.com/mawlid1431)
-- **Project Showcase**: Star ⭐ and watch the repository for updates
-- **Collaboration**: Open to collaboration opportunities - reach out via GitHub
-
-### Community
-- **Discussions**: Join conversations on [GitHub Discussions](https://github.com/mawlid1431/ROAMI/discussions)
-- **Contributions**: See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines
-- **Issues**: Check [existing issues](https://github.com/mawlid1431/ROAMI/issues) before creating new ones
-
-### Using This Project?
-We'd love to know! If you build something with ROAMI:
-- 📢 **Share your project** in GitHub Discussions
-- 🔗 **Tag the repository** so we can feature your work
-- ⭐ **Star the repo** to show your support
-- 💬 **Provide feedback** to help improve the project
-
-## 🗺️ Roadmap
-
-### Current Version: v0.1.0
-
-**Upcoming Features:**
-- [ ] Multi-language support (Bosnian, Turkish, German)
-- [ ] Interactive map with place markers
-- [ ] User accounts & saved itineraries
-- [ ] Real-time weather integration
-- [ ] Mobile app (React Native)
-- [ ] Offline mode with service workers
-- [ ] Virtual tours with 360° photos
-- [ ] Integration with local tour guides
-
-### Version History
-
-**v0.1.0** (Current)
-- ✅ Cinematic scroll experience
-- ✅ Three place pages with dynamic heroes
-- ✅ AI-powered trip planning
-- ✅ Responsive design
-- ✅ Accessibility features
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for the development workflow and coding standards.
 
 ---
 
-<div align="center">
-
-**Built with ❤️ for travelers exploring Mostar**
-
-**Created by [Mowlid Haibe](https://github.com/mawlid1431)**
-
----
-
-### 🌟 Show Your Support
-
-If you found this project helpful or learned from it:
-
-[![GitHub Stars](https://img.shields.io/github/stars/mawlid1431/ROAMI?style=social)](https://github.com/mawlid1431/ROAMI/stargazers)
-[![GitHub Followers](https://img.shields.io/github/followers/mawlid1431?style=social)](https://github.com/mawlid1431)
-
-⭐ **Star this repository** | 👤 **Follow [@mawlid1431](https://github.com/mawlid1431)** | 🔗 **Share with others**
-
----
-
-🌍 [View Project](https://github.com/mawlid1431/ROAMI) • 📖 [Documentation](./README.md) • 💬 [Discussions](https://github.com/mawlid1431/ROAMI/discussions) • 🐛 [Report Bug](https://github.com/mawlid1431/ROAMI/issues)
-
-[![Next.js](https://img.shields.io/badge/Built%20with-Next.js-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
-[![MIT License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](./LICENSE)
-
-© 2024 [Mowlid Haibe](https://github.com/mawlid1431). Open source under MIT License.
-
-</div>
+Built for travelers exploring Mostar.
