@@ -1,6 +1,10 @@
 # Contributing to ROAMI
 
-Thank you for your interest in contributing to ROAMI! This guide will help you get started.
+Thank you for your interest in contributing to ROAMI! This project was created by [Mowlid Haibe](https://github.com/mawlid1431) and is open to community contributions.
+
+**Repository**: [https://github.com/mawlid1431/ROAMI](https://github.com/mawlid1431/ROAMI)
+
+We welcome contributions from developers of all skill levels. This guide will help you get started.
 
 ## 📋 Table of Contents
 
@@ -33,7 +37,7 @@ Thank you for your interest in contributing to ROAMI! This guide will help you g
 
 ### Prerequisites
 
-1. **Fork the repository** on GitHub
+1. **Fork the repository** on GitHub: [https://github.com/mawlid1431/ROAMI](https://github.com/mawlid1431/ROAMI)
 2. **Clone your fork** locally:
    ```bash
    git clone https://github.com/YOUR_USERNAME/ROAMI.git
@@ -41,7 +45,7 @@ Thank you for your interest in contributing to ROAMI! This guide will help you g
    ```
 3. **Add upstream remote**:
    ```bash
-   git remote add upstream https://github.com/original/ROAMI.git
+   git remote add upstream https://github.com/mawlid1431/ROAMI.git
    ```
 4. **Install dependencies**:
    ```bash
@@ -479,14 +483,27 @@ When adding features, update:
 
 ## ❓ Questions?
 
-- **General questions**: Open a [Discussion](https://github.com/roami/roami/discussions)
-- **Bug reports**: Open an [Issue](https://github.com/roami/roami/issues)
-- **Security issues**: Email security@roami.example (DO NOT open public issue)
+- **General questions**: Open a [Discussion](https://github.com/mawlid1431/ROAMI/discussions)
+- **Bug reports**: Open an [Issue](https://github.com/mawlid1431/ROAMI/issues)
+- **Connect with creator**: [@mawlid1431](https://github.com/mawlid1431) on GitHub
+- **Security issues**: Report via GitHub Security tab (DO NOT open public issue)
 
 ## 🎉 Thank You!
 
 Your contributions make ROAMI better for everyone. We appreciate your time and effort!
 
+Special thanks to [Mowlid Haibe](https://github.com/mawlid1431) for creating and maintaining this project.
+
+### Show Your Support
+
+If you contribute or find this project helpful:
+- ⭐ Star the repository
+- 👤 Follow [@mawlid1431](https://github.com/mawlid1431)
+- 📢 Share your contributions
+- 💬 Help others in discussions
+
 ---
 
 **Happy Coding!** 🚀
+
+Created with ❤️ by [Mowlid Haibe](https://github.com/mawlid1431) | Licensed under [MIT](./LICENSE)

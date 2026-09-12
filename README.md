@@ -2,11 +2,15 @@
 
 > A cinematic travel experience website showcasing Mostar, Bosnia and Herzegovina through immersive storytelling and scroll-driven animations.
 
+**Created by [Mowlid Haibe](https://github.com/mawlid1431)** | [GitHub Repository](https://github.com/mawlid1431/ROAMI)
+
 [![Next.js](https://img.shields.io/badge/Next.js-16.3.5-black)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19.2.8-blue)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38bdf8)](https://tailwindcss.com/)
 [![Bun](https://img.shields.io/badge/Bun-1.3.14-f472b6)](https://bun.sh/)
+[![License](https://img.shields.io/badge/License-MIT-green)](./LICENSE)
+[![GitHub](https://img.shields.io/badge/GitHub-mawlid1431-blue)](https://github.com/mawlid1431)
 
 ## 📋 Table of Contents
 
@@ -1313,24 +1317,94 @@ We welcome contributions! Please follow these guidelines:
 
 ## 📄 License
 
-This project is **private and proprietary**.
+This project is licensed under the **MIT License** - see the [LICENSE](./LICENSE) file for details.
 
-© 2024 ROAMI. All rights reserved.
+**TL;DR:** You can freely use, modify, and distribute this project, even for commercial purposes. 
+We just ask that you keep the attribution and give credit where it's due! ⭐
+
+### Using This Project?
+
+If you use ROAMI in your work or learn from it, please:
+
+1. ⭐ **Star the repository** - It helps others discover the project
+2. 🔗 **Link back** to https://github.com/mawlid1431/ROAMI
+3. 📝 **Give credit** to [Mowlid Haibe](https://github.com/mawlid1431)
+4. 💬 **Share your work** - We'd love to see what you build!
+
+Example attribution:
+```markdown
+Built with inspiration from [ROAMI](https://github.com/mawlid1431/ROAMI) 
+by [Mowlid Haibe](https://github.com/mawlid1431)
+```
+
+© 2024 [Mowlid Haibe](https://github.com/mawlid1431). Released under MIT License.
 
 ## 🙏 Acknowledgments
 
+### Creator & Lead Developer
+- **[Mowlid Haibe](https://github.com/mawlid1431)** - Original creator, architect, and lead developer
+  - GitHub: [@mawlid1431](https://github.com/mawlid1431)
+  - Project: [ROAMI](https://github.com/mawlid1431/ROAMI)
+
+### Special Thanks
 - **UNESCO World Heritage Site** - Old Bridge Area of the Old City of Mostar
 - **Historic content and imagery** - Mostar, Bosnia and Herzegovina
 - **Local communities** - Stories and cultural insights
 - **Travelers** - Testimonials and feedback
-- **Open Source Community** - For the amazing tools and libraries
+- **Open Source Community** - For the amazing tools and libraries:
+  - Next.js, React, Tailwind CSS
+  - GSAP, Framer Motion
+  - Bun, TypeScript
+  - And all other open-source contributors
+
+### Want to Learn More?
+
+If you're interested in this project or want to connect:
+- 🌟 **Star this repository** on GitHub
+- 👤 **Follow** [@mawlid1431](https://github.com/mawlid1431)
+- 💼 **Connect** for collaboration opportunities
+- 📧 **Reach out** if you have questions or want to learn
+
+### Built With Passion
+
+This project represents countless hours of design, development, and refinement.
+If you find it helpful, please consider:
+- ⭐ Starring the repository
+- 📢 Sharing it with others
+- 🤝 Contributing improvements
+- 💬 Providing feedback
+
+**Your support helps keep open-source alive!**
 
 ## 📞 Support & Contact
 
-- **Documentation Issues**: Open an issue on GitHub
-- **Feature Requests**: Use GitHub Discussions
-- **Security Issues**: Email security@roami.example (replace with actual)
-- **General Inquiries**: contact@roami.example (replace with actual)
+### Project Information
+- **Repository**: [https://github.com/mawlid1431/ROAMI](https://github.com/mawlid1431/ROAMI)
+- **Creator**: [Mowlid Haibe](https://github.com/mawlid1431)
+- **License**: MIT License (Open Source)
+
+### Get Help
+- **Documentation Issues**: [Open an issue](https://github.com/mawlid1431/ROAMI/issues) on GitHub
+- **Feature Requests**: Use [GitHub Discussions](https://github.com/mawlid1431/ROAMI/discussions)
+- **Bug Reports**: [Report bugs](https://github.com/mawlid1431/ROAMI/issues/new) with details
+- **Security Issues**: Report privately via GitHub Security tab
+
+### Connect with the Creator
+- **GitHub**: [@mawlid1431](https://github.com/mawlid1431)
+- **Project Showcase**: Star ⭐ and watch the repository for updates
+- **Collaboration**: Open to collaboration opportunities - reach out via GitHub
+
+### Community
+- **Discussions**: Join conversations on [GitHub Discussions](https://github.com/mawlid1431/ROAMI/discussions)
+- **Contributions**: See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines
+- **Issues**: Check [existing issues](https://github.com/mawlid1431/ROAMI/issues) before creating new ones
+
+### Using This Project?
+We'd love to know! If you build something with ROAMI:
+- 📢 **Share your project** in GitHub Discussions
+- 🔗 **Tag the repository** so we can feature your work
+- ⭐ **Star the repo** to show your support
+- 💬 **Provide feedback** to help improve the project
 
 ## 🗺️ Roadmap
 
@@ -1361,9 +1435,26 @@ This project is **private and proprietary**.
 
 **Built with ❤️ for travelers exploring Mostar**
 
-🌍 [Visit ROAMI](https://roami.example) • 📖 [Documentation](https://docs.roami.example) • 💬 [Community](https://github.com/roami/community)
+**Created by [Mowlid Haibe](https://github.com/mawlid1431)**
+
+---
+
+### 🌟 Show Your Support
+
+If you found this project helpful or learned from it:
+
+[![GitHub Stars](https://img.shields.io/github/stars/mawlid1431/ROAMI?style=social)](https://github.com/mawlid1431/ROAMI/stargazers)
+[![GitHub Followers](https://img.shields.io/github/followers/mawlid1431?style=social)](https://github.com/mawlid1431)
+
+⭐ **Star this repository** | 👤 **Follow [@mawlid1431](https://github.com/mawlid1431)** | 🔗 **Share with others**
+
+---
+
+🌍 [View Project](https://github.com/mawlid1431/ROAMI) • 📖 [Documentation](./README.md) • 💬 [Discussions](https://github.com/mawlid1431/ROAMI/discussions) • 🐛 [Report Bug](https://github.com/mawlid1431/ROAMI/issues)
 
 [![Next.js](https://img.shields.io/badge/Built%20with-Next.js-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
-[![Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com)
+[![MIT License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](./LICENSE)
+
+© 2024 [Mowlid Haibe](https://github.com/mawlid1431). Open source under MIT License.
 
 </div>

@@ -1,0 +1,63 @@
+MIT License
+
+Copyright (c) 2024 Mowlid Haibe (https://github.com/mawlid1431)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+## Attribution Requirements
+
+While this software is MIT licensed and free to use, we kindly ask that you:
+
+1. **Keep the original author attribution** in your README or documentation
+2. **Link back to the original repository**: https://github.com/mawlid1431/ROAMI
+3. **Credit Mowlid Haibe** as the original creator
+4. **Star the repository** if you find it useful ⭐
+
+Example attribution:
+
+```markdown
+## Credits
+
+This project is based on [ROAMI](https://github.com/mawlid1431/ROAMI) 
+created by [Mowlid Haibe](https://github.com/mawlid1431).
+```
+
+## Learning & Support
+
+If you learn from this project or use it in your work:
+- ⭐ Star the repository
+- 🔗 Follow [@mawlid1431](https://github.com/mawlid1431) on GitHub
+- 💬 Reach out for collaboration opportunities
+- 📢 Share your project (we'd love to see what you build!)
+
+## Commercial Use
+
+You are free to use this project for commercial purposes under the MIT license.
+Attribution is appreciated but not legally required. However, we encourage you to:
+- Give credit where it's due
+- Support open-source development
+- Consider sponsoring or contributing back to the project
+
+---
+
+**Built with ❤️ by Mowlid Haibe**
+
+GitHub: https://github.com/mawlid1431

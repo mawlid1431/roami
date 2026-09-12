@@ -1,7 +1,33 @@
 {
   "name": "roami",
   "version": "0.1.0",
-  "private": true,
+  "description": "A cinematic travel experience website showcasing Mostar, Bosnia and Herzegovina",
+  "author": {
+    "name": "Mowlid Haibe",
+    "url": "https://github.com/mawlid1431"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mawlid1431/ROAMI.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mawlid1431/ROAMI/issues"
+  },
+  "homepage": "https://github.com/mawlid1431/ROAMI#readme",
+  "license": "MIT",
+  "keywords": [
+    "travel",
+    "mostar",
+    "bosnia",
+    "tourism",
+    "nextjs",
+    "react",
+    "gsap",
+    "scroll-animation",
+    "parallax",
+    "cinematic"
+  ],
+  "private": false,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
