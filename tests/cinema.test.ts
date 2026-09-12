@@ -6,7 +6,7 @@ describe("cinematic scroll acceptance milestones", () => {
     const start = getCinemaFrame(0, 900).variables;
     expect(start["--title-opacity"]).toBe(1);
     expect(start["--bridge-width"]).toBe("67.2vw");
-    expect(start["--route-visibility"]).toBe("hidden");
+    expect(start["--sights-visibility"]).toBe("hidden");
     const end = getCinemaFrame(650, 900).variables;
     expect(end["--title-y"]).toBe("-210px");
     expect(end["--title-scale"]).toBe(0.92);
@@ -46,8 +46,10 @@ describe("cinematic scroll acceptance milestones", () => {
       expect(variables["--route-door-left-x"]).toBe("-100%");
       expect(variables["--route-door-right-x"]).toBe("100%");
       expect(variables["--route-caption-opacity"]).toBe(1);
-      const projectedTop = height - (height - parseFloat(String(variables["--route-top"]))) * Number(variables["--back-scale"]);
-      expect(projectedTop).toBeCloseTo(Math.min(220, Math.max(112, height * 0.19)) - 50);
+      // The arrival layer is full-bleed and outside .back-stack, so it carries
+      // no viewport-height geometry of its own — only the airport is left on screen.
+      expect(variables["--route-airport-opacity"]).toBe(1);
+      expect(variables["--route-sky-opacity"]).toBe(0);
     }
   });
 
