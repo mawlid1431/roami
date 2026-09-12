@@ -6,7 +6,7 @@ describe("cinematic scroll acceptance milestones", () => {
     const start = getCinemaFrame(0, 900).variables;
     expect(start["--title-opacity"]).toBe(1);
     expect(start["--bridge-width"]).toBe("67.2vw");
-    expect(start["--sights-visibility"]).toBe("hidden");
+    expect(start["--route-visibility"]).toBe("hidden");
     const end = getCinemaFrame(650, 900).variables;
     expect(end["--title-y"]).toBe("-210px");
     expect(end["--title-scale"]).toBe(0.92);
@@ -36,15 +36,17 @@ describe("cinematic scroll acceptance milestones", () => {
     expect(variables["--bazaar-blur-px"]).toBe("0px");
   });
 
-  test("cards arrive before the controls and stay screen sized across viewport heights", () => {
-    expect(getCinemaFrame(2760, 900).variables["--sights-enter-x"]).toBe("420vw");
-    expect(getCinemaFrame(3350, 900).sightsControlsEnter).toBe(0);
+  test("the plane descends before the airport resolves, and the doors stay shut until the very end", () => {
+    expect(getCinemaFrame(2760, 900).variables["--route-plane-x"]).toBe("46vw");
+    expect(getCinemaFrame(3350, 900).variables["--route-door-left-x"]).toBe("0%");
+    expect(getCinemaFrame(3350, 900).variables["--route-airport-opacity"]).toBeGreaterThan(0);
     for (const height of [640, 900, 1440]) {
-      const { variables, sightsControlsEnter } = getCinemaFrame(3700, height);
-      expect(variables["--sights-enter-x"]).toBe("0vw");
-      expect(sightsControlsEnter).toBe(1);
-      expect(Number(variables["--back-scale"]) * Number(variables["--sights-scale"])).toBeCloseTo(1);
-      const projectedTop = height - (height - parseFloat(String(variables["--sights-top"]))) * Number(variables["--back-scale"]);
+      const { variables } = getCinemaFrame(3700, height);
+      expect(variables["--route-plane-x"]).toBe("0vw");
+      expect(variables["--route-door-left-x"]).toBe("-100%");
+      expect(variables["--route-door-right-x"]).toBe("100%");
+      expect(variables["--route-caption-opacity"]).toBe(1);
+      const projectedTop = height - (height - parseFloat(String(variables["--route-top"]))) * Number(variables["--back-scale"]);
       expect(projectedTop).toBeCloseTo(Math.min(220, Math.max(112, height * 0.19)) - 50);
     }
   });

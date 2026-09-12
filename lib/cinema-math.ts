@@ -14,9 +14,14 @@ export function getCinemaFrame(smoothScroll: number, viewportHeight: number, mou
   const frame3 = segmentInOut(smoothScroll, 1760, 2140, 2540, 2700);
   const progress = clamp(smoothScroll / 2700);
   const introExit = smoothstep(90, 650, smoothScroll);
-  const sightsEnterRaw = smoothstep(2760, 3560, smoothScroll);
-  const sightsEnter = Math.pow(sightsEnterRaw, 1.55);
-  const sightsControlsEnter = smoothstep(3360, 3660, smoothScroll);
+  // The #routes chapter (2760 → 3700): a plane flies in and descends, the
+  // airport resolves beneath it as it "lands", then the arrival doors slide
+  // open on the caption. Each beat overlaps the next so the motion reads as
+  // one continuous approach rather than three discrete cuts.
+  const routeVisible = smoothstep(2760, 2960, smoothScroll);
+  const routePlane = smoothstep(2760, 3320, smoothScroll);
+  const routeAirport = smoothstep(3120, 3500, smoothScroll);
+  const routeDoor = smoothstep(3460, 3700, smoothScroll);
   const blurActive = clamp(frame2.active + frame3.active);
   const frame2Opacity = frame2.active * (1 - frame3.enter);
   const splitDrift = Math.pow(frame2.enter, 1.5);
@@ -25,8 +30,8 @@ export function getCinemaFrame(smoothScroll: number, viewportHeight: number, mou
   const backScale = 0.76 + progress * 0.2 + frame2.enter * 0.18 + frame3.enter * 0.16;
   const sharedHeroY = progress * -74;
   const sharedHeroScale = progress * 0.23;
-  const sightsScreenTop = Math.min(220, Math.max(112, viewportHeight * 0.19)) - 50;
-  const sightsParentTop = viewportHeight - (viewportHeight - sightsScreenTop) / backScale;
+  const routeScreenTop = Math.min(220, Math.max(112, viewportHeight * 0.19)) - 50;
+  const routeParentTop = viewportHeight - (viewportHeight - routeScreenTop) / backScale;
 
   const variables: Record<string, string | number> = {
     "--mx": mouseX.toFixed(4), "--my": mouseY.toFixed(4),
@@ -57,10 +62,17 @@ export function getCinemaFrame(smoothScroll: number, viewportHeight: number, mou
     "--intro-copy-y": `${introExit * 90}px`, "--intro-copy-opacity": 1 - introExit,
     "--panel2-opacity": panel2Opacity, "--panel2-y": `calc(-50% + ${-frame2.exit * 86 + (1 - frame2.enter) * 58}px)`,
     "--panel3-opacity": panel3Opacity, "--panel3-y": `calc(-50% + ${-frame3.exit * 86 + (1 - frame3.enter) * 58}px)`,
-    "--sights-opacity": sightsEnter, "--sights-controls-opacity": sightsControlsEnter,
-    "--sights-visibility": sightsEnter > 0.01 ? "visible" : "hidden", "--sights-y": "0px",
-    "--sights-enter-x": `${(1 - sightsEnter) * 420}vw`, "--sights-scale": 1 / backScale,
-    "--sights-top": `${sightsParentTop}px`, "--sights-screen-top": `${sightsScreenTop}px`,
+    "--route-visibility": routeVisible > 0.01 ? "visible" : "hidden",
+    "--route-top": `${routeParentTop}px`, "--route-screen-top": `${routeScreenTop}px`,
+    "--route-sky-opacity": 1 - routeAirport, "--route-sky-scale": 1 + routePlane * 0.06,
+    "--route-airport-opacity": routeAirport, "--route-airport-scale": 1.06 - routeAirport * 0.06,
+    "--route-plane-opacity": clamp(routePlane * 1.4) * (1 - routeDoor),
+    "--route-plane-x": `${(1 - routePlane) * 46}vw`, "--route-plane-y": `${-22 + routePlane * 30 + routeAirport * 8}vh`,
+    "--route-plane-scale": 0.4 + routePlane * 0.55 + routeAirport * 0.35,
+    "--route-plane-rotate": `${(1 - routePlane) * -10}deg`,
+    "--route-door-opacity": smoothstep(3380, 3460, smoothScroll) * (1 - Math.pow(routeDoor, 3)),
+    "--route-door-left-x": `${-routeDoor * 100}%`, "--route-door-right-x": `${routeDoor * 100}%`,
+    "--route-caption-opacity": routeDoor, "--route-caption-y": `${(1 - routeDoor) * 26}px`,
   };
-  return { variables, sightsControlsEnter, introExit, panel2Opacity, panel3Opacity };
+  return { variables, introExit, panel2Opacity, panel3Opacity };
 }

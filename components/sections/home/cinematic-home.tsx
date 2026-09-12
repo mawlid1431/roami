@@ -1,8 +1,8 @@
 import { CinemaController } from "@/components/animations/cinema-controller";
 import { SiteHeader } from "@/components/layout/site-header";
 import { sceneAssets } from "@/data/scene";
+import { RouteJourney } from "./route-journey";
 import { SceneImage } from "./scene-image";
-import { SightsControls, SightsSlider } from "./sights-slider";
 import { StoryPanels } from "./story-panels";
 
 export function CinematicHome() {
@@ -14,10 +14,9 @@ export function CinematicHome() {
           <SiteHeader />
           <div className="back-stack">
             <SceneImage className="back-img back-four" src={sceneAssets.four} />
-            <SightsSlider />
+            <RouteJourney />
             <SceneImage className="back-img back-bazaar" src={sceneAssets.bazaar} />
           </div>
-          <SightsControls />
           <h1 className="hero-title">ROAMI</h1>
           <SceneImage className="splitframe-img splitframe-left" src={sceneAssets.left} eager />
           <SceneImage className="splitframe-img splitframe-right" src={sceneAssets.right} eager />

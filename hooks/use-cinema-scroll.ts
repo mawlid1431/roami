@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import { clamp, getCinemaFrame, lerp } from "@/lib/cinema-math";
-import { createSightSlider } from "@/lib/sight-slider";
 
 export function useCinemaScroll() {
   useEffect(() => {
@@ -10,11 +9,9 @@ export function useCinemaScroll() {
     if (!section) return;
     const root = document.documentElement;
     const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
-    const controls = section.querySelector<HTMLElement>(".sights-controls")!;
     const intro = section.querySelector<HTMLElement>(".intro-copy")!;
     const bridge = section.querySelector<HTMLElement>(".story-panel-bridge")!;
     const bazaar = section.querySelector<HTMLElement>(".story-panel-bazaar")!;
-    const slider = createSightSlider(section, reduceMotion);
     const abort = new AbortController();
     const options = { passive: true, signal: abort.signal };
     let targetMouseX = 0, targetMouseY = 0, mouseX = 0, mouseY = 0;
@@ -51,8 +48,6 @@ export function useCinemaScroll() {
       for (const [key, value] of Object.entries(frame.variables)) {
         root.style.setProperty(key, String(value));
       }
-      controls.classList.toggle("is-ready", frame.sightsControlsEnter > 0.98);
-      setExposure(controls, frame.sightsControlsEnter > 0.98);
       setExposure(intro, frame.introExit < 0.99);
       setExposure(bridge, frame.panel2Opacity > 0.01);
       setExposure(bazaar, frame.panel3Opacity > 0.01);
@@ -75,7 +70,7 @@ export function useCinemaScroll() {
     }
 
     window.addEventListener("scroll", requestTick, options);
-    window.addEventListener("resize", () => { slider.updateSightSlider(); requestTick(); }, options);
+    window.addEventListener("resize", requestTick, options);
     window.addEventListener("pointermove", (event) => {
       if (!reduceMotion.matches) {
         targetMouseX = event.clientX / window.innerWidth - 0.5;
@@ -100,7 +95,6 @@ export function useCinemaScroll() {
     return () => {
       abort.abort();
       cancelAnimationFrame(frameId);
-      slider.destroy();
       priorStyles.forEach((value, key) => value ? root.style.setProperty(key, value) : root.style.removeProperty(key));
     };
   }, []);
