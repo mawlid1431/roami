@@ -12,6 +12,10 @@ export function useCinemaScroll() {
     const intro = section.querySelector<HTMLElement>(".intro-copy")!;
     const bridge = section.querySelector<HTMLElement>(".story-panel-bridge")!;
     const bazaar = section.querySelector<HTMLElement>(".story-panel-bazaar")!;
+    const belowFoldSections = ["places", "get-in-touch"]
+      .map((id) => ({ id, el: document.getElementById(id) }))
+      .filter((entry): entry is { id: string; el: HTMLElement } => entry.el !== null);
+    const chapterWaypoints: [string, number][] = [["cinema", 0], ["bridge", 1080], ["bazaar", 2320], ["routes", 3700]];
     const abort = new AbortController();
     const options = { passive: true, signal: abort.signal };
     let targetMouseX = 0, targetMouseY = 0, mouseX = 0, mouseY = 0;
@@ -23,6 +27,23 @@ export function useCinemaScroll() {
     function setExposure(element: HTMLElement, visible: boolean) {
       element.inert = !visible;
       element.setAttribute("aria-hidden", String(!visible));
+    }
+
+    // Drives the nav's active-link highlight: below-fold sections win once
+    // actually in view, otherwise the nearest in-pin chapter waypoint we've
+    // scrolled past does. Read via [data-active-section] in cinema.css.
+    function updateActiveSection() {
+      const headerClearance = 140;
+      for (const { id, el } of belowFoldSections) {
+        const rect = el.getBoundingClientRect();
+        if (rect.top <= headerClearance && rect.bottom > headerClearance) {
+          root.dataset.activeSection = id;
+          return;
+        }
+      }
+      let active = chapterWaypoints[0][0];
+      for (const [id, distance] of chapterWaypoints) if (targetScroll >= distance - 1) active = id;
+      root.dataset.activeSection = active;
     }
 
     function update() {
@@ -51,6 +72,7 @@ export function useCinemaScroll() {
       setExposure(intro, frame.introExit < 0.99);
       setExposure(bridge, frame.panel2Opacity > 0.01);
       setExposure(bazaar, frame.panel3Opacity > 0.01);
+      updateActiveSection();
 
       if (Math.abs(smoothScroll - targetScroll) > 0.08 || Math.abs(mouseX - targetMouseX) > 0.001 || Math.abs(mouseY - targetMouseY) > 0.001) requestTick();
     }
@@ -95,6 +117,7 @@ export function useCinemaScroll() {
     return () => {
       abort.abort();
       cancelAnimationFrame(frameId);
+      delete root.dataset.activeSection;
       priorStyles.forEach((value, key) => value ? root.style.setProperty(key, value) : root.style.removeProperty(key));
     };
   }, []);

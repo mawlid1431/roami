@@ -149,7 +149,15 @@
 .plan-card.is-chat .plan-right > * { position: static; }
 .plan-card.is-chat .plan-status { position: static; }
 
-.plan-transcript { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; padding-right: 4px; margin: 0 -4px; }
+.plan-transcript {
+  flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 12px;
+  overflow-y: auto; padding-right: 10px; margin: 0 -4px;
+  scrollbar-width: thin; scrollbar-color: rgba(253, 241, 225, 0.28) transparent;
+}
+.plan-transcript::-webkit-scrollbar { width: 5px; }
+.plan-transcript::-webkit-scrollbar-track { background: transparent; }
+.plan-transcript::-webkit-scrollbar-thumb { background: rgba(253, 241, 225, 0.28); border-radius: 999px; }
+.plan-transcript::-webkit-scrollbar-thumb:hover { background: rgba(253, 241, 225, 0.45); }
 .plan-msg { display: flex; flex-direction: column; gap: 6px; max-width: 88%; animation: plan-msg-in 0.28s ease-out both; }
 .plan-msg-user { align-self: flex-end; align-items: flex-end; }
 .plan-msg-assistant { align-self: flex-start; align-items: flex-start; }

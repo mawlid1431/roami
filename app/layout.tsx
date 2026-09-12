@@ -10,7 +10,6 @@ import "./styles/plan.css";
 export const metadata: Metadata = {
   title: "ROAMI | Your world. Your journey.",
   description: "A cinematic three-screen scroll story for Mostar city. Explore with ROAMI.",
-  icons: { icon: "data:," },
   openGraph: {
     title: "ROAMI | Your world. Your journey.",
     description: "A stone arch, emerald water, and one unforgettable crossing. Discover Mostar with ROAMI.",
